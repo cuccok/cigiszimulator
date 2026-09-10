@@ -1,0 +1,3773 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Cigi Szimulator - szatirikus tulelo-szimulacio egy harminc napos fogadasrol.">
+<meta name="theme-color" content="#0d0d10">
+<title>Cigi Szimulator</title>
+<style>
+
+
+:root {
+  --hatter:        #0c0c10;
+  --hatter-fenyes: #14141b;
+  --panel:         #16161d;
+  --panel-vilagos: #1f1f29;
+  --keret:         #2b2b37;
+  --keret-eros:    #3a3a48;
+
+  --narancs:       #ff8a2b;
+  --narancs-sotet: #d96a12;
+  --narancs-halk:  rgba(255, 138, 43, 0.14);
+
+  --zold:          #35d07f;
+  --zold-halk:     rgba(53, 208, 127, 0.14);
+  --piros:         #ff4d5e;
+  --piros-halk:    rgba(255, 77, 94, 0.14);
+  --sarga:         #ffd166;
+  --kek:           #5aa9ff;
+
+  --szoveg:        #f3f3f6;
+  --szoveg-halk:   #9a9aac;
+  --szoveg-halkabb:#6c6c7d;
+
+  --sugar:         16px;
+  --sugar-kicsi:   10px;
+  --arnyek:        0 8px 24px rgba(0, 0, 0, 0.45);
+  --glow-narancs:  0 0 18px rgba(255, 138, 43, 0.35);
+  --glow-zold:     0 0 18px rgba(53, 208, 127, 0.3);
+  --glow-piros:    0 0 18px rgba(255, 77, 94, 0.3);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #1a1a24 0%, transparent 60%),
+    var(--hatter);
+  color: var(--szoveg);
+  font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: 0.5px; }
+p { margin: 0 0 10px; }
+
+
+
+.gomb {
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--szoveg);
+  background: var(--panel-vilagos);
+  border: 1px solid var(--keret-eros);
+  border-radius: var(--sugar-kicsi);
+  padding: 12px 16px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.gomb:hover:not(:disabled) {
+  background: #262633;
+  border-color: var(--narancs);
+  box-shadow: var(--glow-narancs);
+  transform: translateY(-2px);
+}
+
+.gomb:active:not(:disabled) { transform: translateY(1px) scale(0.985); }
+
+.gomb:focus-visible {
+  outline: 2px solid var(--narancs);
+  outline-offset: 2px;
+}
+
+.gomb:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.gomb-fo {
+  background: linear-gradient(180deg, var(--narancs) 0%, var(--narancs-sotet) 100%);
+  border-color: var(--narancs);
+  color: #1a0d02;
+  box-shadow: var(--glow-narancs);
+}
+
+.gomb-fo:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffa254 0%, #e97a1c 100%);
+  box-shadow: 0 0 26px rgba(255, 138, 43, 0.55);
+}
+
+.gomb-mellek { background: transparent; }
+
+.gomb-veszely {
+  border-color: var(--piros);
+  color: var(--piros);
+}
+.gomb-veszely:hover:not(:disabled) {
+  border-color: var(--piros);
+  box-shadow: var(--glow-piros);
+  background: var(--piros-halk);
+}
+
+
+.reteg {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(6, 6, 9, 0.86);
+  backdrop-filter: blur(6px);
+  animation: halvanyodas 0.25s ease;
+}
+
+.reteg[hidden] { display: none; }
+
+@keyframes halvanyodas { from { opacity: 0; } to { opacity: 1; } }
+
+.menu-kartya {
+  width: min(460px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar);
+  box-shadow: var(--arnyek);
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.menu-logo {
+  font-size: 54px;
+  filter: drop-shadow(0 0 18px rgba(255, 138, 43, 0.6));
+  animation: lebeges 3s ease-in-out infinite;
+}
+
+@keyframes lebeges {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.menu-cim { font-size: 26px; margin: 6px 0 2px; }
+.menu-cim span { color: var(--narancs); display: block; font-size: 20px; letter-spacing: 3px; }
+.menu-alcim { color: var(--szoveg-halk); margin-bottom: 22px; }
+
+.menu-gombok { display: grid; gap: 10px; }
+
+.menu-labjegyzet {
+  margin-top: 22px;
+  font-size: 12px;
+  color: var(--szoveg-halkabb);
+  line-height: 1.5;
+}
+
+
+.hud {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: rgba(12, 12, 16, 0.92);
+  border-bottom: 1px solid var(--keret);
+  backdrop-filter: blur(8px);
+}
+
+.hud-cim { font-weight: 800; letter-spacing: 1.4px; font-size: 15px; }
+.hud-ikon { filter: drop-shadow(0 0 8px rgba(255, 138, 43, 0.7)); }
+
+.hud-jobb { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.hud-doboz {
+  background: var(--panel);
+  border: 1px solid var(--keret);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hud-pont { color: var(--narancs); border-color: var(--narancs-sotet); }
+
+
+.tartalom {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 16px 16px 28px;
+  display: grid;
+  gap: 14px;
+}
+
+
+.statok {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.stat-kartya {
+  background: var(--panel);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar-kicsi);
+  padding: 10px 12px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-kartya.veszely {
+  border-color: var(--piros);
+  box-shadow: var(--glow-piros);
+  animation: villogas 1.6s ease-in-out infinite;
+}
+
+@keyframes villogas {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 77, 94, 0.2); }
+  50%      { box-shadow: 0 0 22px rgba(255, 77, 94, 0.5); }
+}
+
+.stat-fej {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.stat-nev { font-size: 12px; color: var(--szoveg-halk); letter-spacing: 0.8px; }
+.stat-ertek { font-size: 15px; font-weight: 800; }
+
+
+.csik {
+  background: #0a0a0e;
+  border: 1px solid var(--keret);
+  border-radius: 999px;
+  overflow: hidden;
+  height: 10px;
+}
+
+.csik-nagy { height: 14px; }
+.csik-kicsi { height: 6px; width: 90px; }
+
+.csik-kitolt {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
+  background: var(--narancs);
+}
+
+.csik-jo    { background: linear-gradient(90deg, #2aa964, var(--zold)); box-shadow: var(--glow-zold); }
+.csik-kozep { background: linear-gradient(90deg, #d99a12, var(--sarga)); }
+.csik-rossz { background: linear-gradient(90deg, #c9303f, var(--piros)); box-shadow: var(--glow-piros); }
+.csik-craving { background: linear-gradient(90deg, var(--narancs-sotet), var(--narancs)); }
+.csik-xp { background: linear-gradient(90deg, #3b7fd4, var(--kek)); }
+
+
+.szinpad {
+  background: var(--panel);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar);
+  padding: 16px;
+  box-shadow: var(--arnyek);
+}
+
+.helyszin-fej { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.helyszin-ikon { font-size: 34px; }
+.helyszin-nev { font-size: 18px; color: var(--narancs); }
+.helyszin-leiras { margin: 2px 0 0; font-size: 13px; color: var(--szoveg-halk); }
+
+.cigi-panel {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  background: var(--hatter-fenyes);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar-kicsi);
+  padding: 16px;
+  text-align: center;
+}
+
+.cigi-vizual {
+  font-size: 46px;
+  line-height: 1;
+  filter: drop-shadow(0 0 14px rgba(255, 138, 43, 0.45));
+  transition: transform 0.3s ease;
+}
+
+.cigi-vizual.eros { animation: remeges 0.5s ease-in-out infinite; }
+
+@keyframes remeges {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25%      { transform: translateX(-2px) rotate(-2deg); }
+  75%      { transform: translateX(2px) rotate(2deg); }
+}
+
+.cigi-info { width: min(320px, 100%); }
+.cigi-cimke { font-size: 11px; letter-spacing: 2px; color: var(--szoveg-halk); margin-bottom: 6px; }
+.cigi-ertek { margin-top: 6px; font-weight: 800; font-size: 14px; }
+.cigi-keszlet { font-size: 12px; color: var(--szoveg-halk); }
+
+.gomb-cigi {
+  width: min(320px, 100%);
+  font-size: 16px;
+  color: var(--narancs);
+  background: var(--narancs-halk);
+  border-color: var(--narancs-sotet);
+  box-shadow: var(--glow-narancs);
+}
+
+.gomb-cigi:hover:not(:disabled) {
+  background: rgba(255, 138, 43, 0.24);
+  color: var(--szoveg);
+}
+
+.akciok {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.akcio-gomb { display: grid; gap: 2px; text-align: left; }
+.akcio-cim { font-size: 14px; }
+.akcio-koltseg { font-size: 11px; color: var(--szoveg-halk); font-weight: 600; letter-spacing: 0.4px; }
+
+
+.also-sav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  background: var(--panel);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar-kicsi);
+  padding: 10px 14px;
+}
+
+.also-elem { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.also-elem strong { font-weight: 800; }
+.szint-blokk { display: grid; gap: 4px; }
+
+.menusor {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.gomb-menu {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  font-size: 18px;
+}
+
+.gomb-menu span { font-size: 10px; letter-spacing: 0.5px; color: var(--szoveg-halk); }
+
+
+.modal {
+  width: min(560px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--keret-eros);
+  border-radius: var(--sugar);
+  box-shadow: var(--arnyek);
+  animation: felugras 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes felugras {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-fej {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--keret);
+}
+
+.modal-fej h2 { font-size: 17px; color: var(--narancs); }
+
+.modal-bezar {
+  background: transparent;
+  border: 1px solid var(--keret);
+  color: var(--szoveg-halk);
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.modal-bezar:hover { color: var(--piros); border-color: var(--piros); }
+
+.modal-torzs { padding: 16px; overflow-y: auto; }
+.modal-lab { padding: 12px 16px; border-top: 1px solid var(--keret); display: grid; gap: 8px; }
+.modal-lab:empty { display: none; }
+
+.modal-szoveg { color: var(--szoveg-halk); line-height: 1.6; }
+.modal-ikon { font-size: 40px; text-align: center; margin-bottom: 8px; }
+
+.lista { display: grid; gap: 8px; }
+
+.tetel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel-vilagos);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar-kicsi);
+  padding: 10px 12px;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+}
+
+button.tetel { cursor: pointer; font: inherit; color: inherit; }
+button.tetel:hover:not(:disabled) { border-color: var(--narancs); box-shadow: var(--glow-narancs); transform: translateY(-1px); }
+button.tetel:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.tetel-ikon { font-size: 26px; flex: 0 0 auto; }
+.tetel-torzs { flex: 1 1 auto; min-width: 0; }
+.tetel-nev { font-weight: 700; }
+.tetel-leiras { font-size: 12px; color: var(--szoveg-halk); }
+.tetel-jobb { flex: 0 0 auto; font-weight: 800; color: var(--narancs); white-space: nowrap; }
+
+.tetel.feloldva { border-color: var(--zold); box-shadow: var(--glow-zold); }
+.tetel.zarolt { opacity: 0.5; }
+
+.racs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+}
+
+.rekesz {
+  background: var(--panel-vilagos);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar-kicsi);
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+}
+
+.rekesz:hover:not(:disabled) { border-color: var(--narancs); box-shadow: var(--glow-narancs); transform: translateY(-2px); }
+.rekesz:disabled { opacity: 0.5; cursor: not-allowed; }
+.rekesz-ikon { font-size: 26px; }
+.rekesz-nev { font-size: 11px; color: var(--szoveg-halk); }
+.rekesz-db { font-weight: 800; color: var(--narancs); }
+
+
+.naplo-sor {
+  display: flex;
+  gap: 10px;
+  padding: 7px 10px;
+  border-left: 3px solid var(--keret-eros);
+  background: var(--panel-vilagos);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+}
+
+.naplo-sor.jo    { border-left-color: var(--zold); }
+.naplo-sor.rossz { border-left-color: var(--piros); }
+.naplo-ido { color: var(--szoveg-halkabb); font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+
+
+.osszegzo { display: grid; gap: 8px; }
+
+.osszegzo-sor {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--panel-vilagos);
+  border: 1px solid var(--keret);
+  border-radius: var(--sugar-kicsi);
+}
+
+.osszegzo-sor strong { font-weight: 800; }
+.jo-ertek { color: var(--zold); }
+.rossz-ertek { color: var(--piros); }
+.semleges-ertek { color: var(--szoveg); }
+
+.dij {
+  text-align: center;
+  padding: 14px;
+  border-radius: var(--sugar-kicsi);
+  border: 1px dashed var(--narancs);
+  background: var(--narancs-halk);
+  font-weight: 800;
+  color: var(--narancs);
+}
+
+
+.modal-mini { padding: 20px; text-align: center; gap: 12px; }
+.modal-mini h2 { color: var(--narancs); font-size: 19px; }
+.mini-leiras { color: var(--szoveg-halk); font-size: 13px; }
+
+.mini-sav {
+  position: relative;
+  height: 46px;
+  margin: 6px 0;
+  background: linear-gradient(90deg, #101017, #1b1b25);
+  border: 1px solid var(--keret-eros);
+  border-radius: 999px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.mini-zona {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 138, 43, 0.5), rgba(255, 138, 43, 0.22));
+  border-left: 2px solid var(--narancs);
+  border-right: 2px solid var(--narancs);
+  box-shadow: inset 0 0 22px rgba(255, 138, 43, 0.45);
+}
+
+.mini-jelolo {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 6px;
+  margin-left: -3px;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.9);
+}
+
+.mini-korok { display: flex; gap: 8px; justify-content: center; }
+
+.kor-pont {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--keret-eros);
+  background: var(--panel-vilagos);
+}
+.kor-pont.talalat { background: var(--zold); box-shadow: var(--glow-zold); border-color: var(--zold); }
+.kor-pont.hiba    { background: var(--piros); box-shadow: var(--glow-piros); border-color: var(--piros); }
+.kor-pont.aktiv   { border-color: var(--narancs); box-shadow: var(--glow-narancs); }
+
+.gomb-mini { width: 100%; font-size: 16px; }
+.mini-sugo { font-size: 11px; color: var(--szoveg-halkabb); margin: 0; }
+
+
+.pirit-sor {
+  position: fixed;
+  left: 50%;
+  top: 62px;
+  transform: translateX(-50%);
+  z-index: 70;
+  display: grid;
+  gap: 8px;
+  width: min(420px, calc(100% - 32px));
+  pointer-events: none;
+}
+
+.pirit {
+  background: var(--panel);
+  border: 1px solid var(--keret-eros);
+  border-left: 4px solid var(--narancs);
+  border-radius: var(--sugar-kicsi);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  box-shadow: var(--arnyek);
+  animation: pirit-be 0.22s ease, pirit-ki 0.3s ease 2.1s forwards;
+}
+
+.pirit.jo    { border-left-color: var(--zold); }
+.pirit.rossz { border-left-color: var(--piros); }
+
+@keyframes pirit-be { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pirit-ki { to { opacity: 0; transform: translateY(-10px); } }
+
+.valtozas-sor { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+.valtozas {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--panel-vilagos);
+  border: 1px solid var(--keret);
+}
+.valtozas.jo    { color: var(--zold); border-color: rgba(53, 208, 127, 0.4); background: var(--zold-halk); }
+.valtozas.rossz { color: var(--piros); border-color: rgba(255, 77, 94, 0.4); background: var(--piros-halk); }
+
+
+@media (max-width: 560px) {
+  .pirit-sor { top: 54px; }
+  .hud { padding: 10px 12px; }
+  .hud-cim { font-size: 13px; }
+  .hud-doboz { font-size: 11px; padding: 4px 9px; }
+  .tartalom { padding: 12px 12px 24px; }
+  .statok { grid-template-columns: repeat(2, 1fr); }
+  .akciok { grid-template-columns: 1fr; }
+  .menusor { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .gomb-menu { font-size: 16px; padding: 9px 2px; }
+  .gomb-menu span { font-size: 9px; }
+  .cigi-vizual { font-size: 38px; }
+  .modal { max-height: 92vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚬</text></svg>">
+</head>
+<body>
+
+
+<div class="reteg" id="fomenu">
+  <div class="menu-kartya">
+    <div class="menu-logo">🚬</div>
+    <h1 class="menu-cim">CIGI<span>SZIMULATOR</span></h1>
+    <p class="menu-alcim">Harminc nap. Egy fogadas. Egy tudo.</p>
+
+    <div class="menu-gombok">
+      <button class="gomb gomb-fo" id="gomb-folytatas" hidden>▶ FOLYTATAS</button>
+      <button class="gomb gomb-fo" id="gomb-uj-jatek">🎬 UJ JATEK</button>
+      <button class="gomb gomb-mellek" id="gomb-menu-achievementek">🏆 ACHIEVEMENTEK</button>
+      <button class="gomb gomb-mellek" id="gomb-menu-sugo">❓ HOGYAN MUKODIK</button>
+    </div>
+
+    <p class="menu-labjegyzet">
+      Fiktiv, szatirikus jatek. Nem dohanyzasra biztat - eppen ellenkezoleg:
+      a cel a karaktered allapotanak menedzselese.
+    </p>
+  </div>
+</div>
+
+<div id="jatekter" hidden>
+
+  <header class="hud">
+    <div class="hud-cim"><span class="hud-ikon">🚬</span> CIGI SZIMULATOR</div>
+    <div class="hud-jobb">
+      <div class="hud-doboz" id="hud-nap" title="Aktualis nap">NAP 1</div>
+      <div class="hud-doboz" id="hud-ido" title="Pontos ido">☀️ 08:00</div>
+      <div class="hud-doboz hud-pont" id="hud-pont" title="Osszpontszam">⭐ 0</div>
+    </div>
+  </header>
+
+  <main class="tartalom">
+
+    <section class="statok" id="statok" aria-label="Karakter allapota"></section>
+
+    <section class="szinpad">
+      <div class="helyszin-fej">
+        <span class="helyszin-ikon" id="helyszin-ikon">🏠</span>
+        <div>
+          <h2 class="helyszin-nev" id="helyszin-nev">Lakas</h2>
+          <p class="helyszin-leiras" id="helyszin-leiras"></p>
+        </div>
+      </div>
+
+      <div class="cigi-panel">
+        <div class="cigi-vizual" id="cigi-vizual">🚬</div>
+        <div class="cigi-info">
+          <div class="cigi-cimke">CIGIVÁGY</div>
+          <div class="csik csik-nagy"><div class="csik-kitolt csik-craving" id="craving-csik"></div></div>
+          <div class="cigi-ertek" id="craving-ertek">0%</div>
+        </div>
+        <button class="gomb gomb-cigi" id="gomb-cigi">🚬 RÁGYUJTOK</button>
+        <div class="cigi-keszlet" id="cigi-keszlet">12 szal</div>
+      </div>
+
+      <div class="akciok" id="akciok" aria-label="Elerheto akciok"></div>
+    </section>
+
+    <section class="also-sav">
+      <div class="also-elem"><span>💰</span><strong id="also-penz">0 Ft</strong></div>
+      <div class="also-elem"><span>🚬</span><strong id="also-cigi">0</strong></div>
+      <div class="also-elem szint-elem">
+        <span>⭐</span>
+        <div class="szint-blokk">
+          <strong id="also-szint">LVL 1</strong>
+          <div class="csik csik-kicsi"><div class="csik-kitolt csik-xp" id="xp-csik"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="menusor" aria-label="Menu">
+      <button class="gomb gomb-menu" id="gomb-terkep">🗺️<span>Terkep</span></button>
+      <button class="gomb gomb-menu" id="gomb-bolt">🏪<span>Bolt</span></button>
+      <button class="gomb gomb-menu" id="gomb-inventory">🎒<span>Taska</span></button>
+      <button class="gomb gomb-menu" id="gomb-achievementek">🏆<span>Sikerek</span></button>
+      <button class="gomb gomb-menu" id="gomb-naplo">📜<span>Naplo</span></button>
+    </nav>
+  </main>
+
+  <div class="pirit-sor" id="pirit-sor" aria-live="polite"></div>
+</div>
+
+<div class="reteg" id="modal-reteg" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-cim">
+    <header class="modal-fej">
+      <h2 id="modal-cim">Cim</h2>
+      <button class="modal-bezar" id="modal-bezar" aria-label="Bezaras">✕</button>
+    </header>
+    <div class="modal-torzs" id="modal-torzs"></div>
+    <footer class="modal-lab" id="modal-lab"></footer>
+  </div>
+</div>
+
+<div class="reteg" id="minijatek-reteg" hidden>
+  <div class="modal modal-mini" role="dialog" aria-modal="true" aria-labelledby="mini-cim">
+    <h2 id="mini-cim">Idozites</h2>
+    <p class="mini-leiras" id="mini-leiras"></p>
+
+    <div class="mini-sav" id="mini-sav">
+      <div class="mini-zona" id="mini-zona"></div>
+      <div class="mini-jelolo" id="mini-jelolo"></div>
+    </div>
+
+    <div class="mini-korok" id="mini-korok"></div>
+    <button class="gomb gomb-fo gomb-mini" id="gomb-mini-stop">MOST! (szoköz)</button>
+    <p class="mini-sugo">Kattints vagy nyomj szoközt, amikor a jelölő a narancs zonában van.</p>
+  </div>
+</div>
+
+<script>
+
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+
+  function korlat(ertek, minimum, maximum) {
+    var szam = Number(ertek);
+    if (!isFinite(szam)) return minimum;
+    if (szam < minimum) return minimum;
+    if (szam > maximum) return maximum;
+    return szam;
+  }
+
+  function kerekit(ertek, tizedesek) {
+    var szorzo = Math.pow(10, tizedesek || 0);
+    return Math.round(Number(ertek) * szorzo) / szorzo;
+  }
+
+  /**
+   * 
+   * @param {number} mag kezdoertek
+   * @returns {function(): number} 
+   */
+  function veletlenGenerator(mag) {
+    var allapot = (Number(mag) || 0) >>> 0;
+    return function () {
+      allapot = (allapot + 0x6d2b79f5) >>> 0;
+      var t = allapot;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+
+  function veletlenEgesz(rng, also, felso) {
+    if (felso < also) throw new Error('veletlenEgesz: felso < also');
+    return also + Math.floor(rng() * (felso - also + 1));
+  }
+
+  function veletlenElem(rng, tomb) {
+    if (!Array.isArray(tomb) || tomb.length === 0) return null;
+    return tomb[Math.floor(rng() * tomb.length)];
+  }
+
+  /**
+   * 
+   * @returns {*} 
+   */
+  function sulyozottElem(rng, tomb, sulyFuggveny) {
+    if (!Array.isArray(tomb) || tomb.length === 0) return null;
+    var osszSuly = 0;
+    var i;
+    for (i = 0; i < tomb.length; i++) {
+      var suly = Number(sulyFuggveny(tomb[i]));
+      if (isFinite(suly) && suly > 0) osszSuly += suly;
+    }
+    if (osszSuly <= 0) return null;
+    var dobas = rng() * osszSuly;
+    for (i = 0; i < tomb.length; i++) {
+      var s = Number(sulyFuggveny(tomb[i]));
+      if (!isFinite(s) || s <= 0) continue;
+      dobas -= s;
+      if (dobas <= 0) return tomb[i];
+    }
+    return tomb[tomb.length - 1];
+  }
+
+  function penzFormatum(osszeg) {
+    var egesz = Math.round(Number(osszeg) || 0);
+    var elojel = egesz < 0 ? '-' : '';
+    var szoveg = String(Math.abs(egesz)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return elojel + szoveg + ' Ft';
+  }
+
+  function oraFormatum(percek) {
+    var ossz = Math.max(0, Math.floor(Number(percek) || 0)) % 1440;
+    var ora = Math.floor(ossz / 60);
+    var perc = ossz % 60;
+    return (ora < 10 ? '0' : '') + ora + ':' + (perc < 10 ? '0' : '') + perc;
+  }
+
+
+  function masolat(ertek) {
+    return JSON.parse(JSON.stringify(ertek));
+  }
+
+  CIGI.utils = {
+    korlat: korlat,
+    kerekit: kerekit,
+    veletlenGenerator: veletlenGenerator,
+    veletlenEgesz: veletlenEgesz,
+    veletlenElem: veletlenElem,
+    sulyozottElem: sulyozottElem,
+    penzFormatum: penzFormatum,
+    oraFormatum: oraFormatum,
+    masolat: masolat
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.utils;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+
+
+
+  var BEALLITAS = {
+    NAP_KEZDET: 8 * 60,          
+    NAP_VEGE: 22 * 60,           
+    UTOLSO_NAP: 30,
+    KEZDO_PENZ: 4250,
+    FOGADAS_TETJE: 50000,
+    MAX_TARGY_DB: 99,
+    NAPLO_HOSSZ: 40,
+    MOZGAS_PERC: 10
+  };
+
+  
+
+  var TARGYAK = {
+    cigi: {
+      id: 'cigi', nev: 'Cigaretta', ikon: '🚬',
+      leiras: 'Egy szál. A fogadásod ellensége.',
+      boltban: false, hasznalhato: false
+    },
+    cigi_doboz: {
+      id: 'cigi_doboz', nev: 'Cigarettasdoboz', ikon: '📦',
+      leiras: '20 szál. Drága, és a tüdod is fizet erte.',
+      ar: 2800, boltban: ['bolt'], hasznalhato: true,
+      hatas: {}, targyak: { cigi: 20 }, minSzint: 1
+    },
+    kave: {
+      id: 'kave', nev: 'Kave', ikon: '☕',
+      leiras: 'ébresztő. Cserébe kicsit növeli a cigivágyat.',
+      ar: 650, boltban: ['bolt', 'kavezo'], hasznalhato: true,
+      hatas: { energia: 15, hangulat: 5, craving: 5 }, minSzint: 1
+    },
+    udito: {
+      id: 'udito', nev: 'Udito', ikon: '🥤',
+      leiras: 'Cukor és buborek.',
+      ar: 500, boltban: ['bolt', 'kavezo'], hasznalhato: true,
+      hatas: { energia: 8, hangulat: 4 }, minSzint: 1
+    },
+    szendvics: {
+      id: 'szendvics', nev: 'Szendvics', ikon: '🥪',
+      leiras: 'Rendes kaja helyett. Legalább energia.',
+      ar: 950, boltban: ['bolt', 'kavezo'], hasznalhato: true,
+      hatas: { energia: 22, hangulat: 6 }, minSzint: 1
+    },
+    ragogumi: {
+      id: 'ragogumi', nev: 'Ragogumi', ikon: '🍬',
+      leiras: 'Elfoglalja a szádat, amig elmulik a roham.',
+      ar: 300, boltban: ['bolt', 'kavezo'], hasznalhato: true,
+      hatas: { craving: -14, hangulat: 2 }, minSzint: 1
+    },
+    viz: {
+      id: 'viz', nev: 'Vizespalack', ikon: '💧',
+      leiras: 'Unalmas, de müködik.',
+      ar: 250, boltban: ['bolt', 'kavezo'], hasznalhato: true,
+      hatas: { craving: -7, energia: 4, tudo: 1 }, minSzint: 1
+    },
+    tapasz: {
+      id: 'tapasz', nev: 'Nikotintapasz', ikon: '🩹',
+      leiras: 'Drága, de a legerősebb rohamot is levágja.',
+      ar: 1900, boltban: ['bolt'], hasznalhato: true,
+      hatas: { craving: -40, hangulat: -4 }, minSzint: 3
+    },
+    edzobelepo: {
+      id: 'edzobelepo', nev: 'Edzoterem belepo', ikon: '🏋️',
+      leiras: 'Egy alkalom. Fájni fog, de a tüdod hálás lesz.',
+      ar: 1500, boltban: ['bolt'], hasznalhato: true,
+      hatas: { tudo: 5, energia: -18, hangulat: 10, craving: -10 }, minSzint: 2
+    },
+    kulcs: {
+      id: 'kulcs', nev: 'Lakaskulcs', ikon: '🔑',
+      leiras: 'Enélkul nem jutsz haza. Ne veszitsd el.',
+      boltban: false, hasznalhato: false
+    }
+  };
+
+
+
+  var HELYSZINEK = {
+    lakas: {
+      id: 'lakas', nev: 'Lakas', ikon: '🏠',
+      leiras: 'Huszonkilenc négyzetmeter és egy szobatárs, aki fogadott veled.',
+      szomszedok: ['utca'], akciok: ['pihenes', 'alvas']
+    },
+    utca: {
+      id: 'utca', nev: 'Utca', ikon: '🚏',
+      leiras: 'Innen bárhova eljutsz. És itt mindenki dohányzik.',
+      szomszedok: ['lakas', 'bolt', 'munka', 'kavezo', 'park'], akciok: ['seta']
+    },
+    bolt: {
+      id: 'bolt', nev: 'Bolt', ikon: '🏪',
+      leiras: 'A pult mögött minden ott van, amit nem kéne megvenned.',
+      szomszedok: ['utca'], akciok: ['bolt']
+    },
+    munka: {
+      id: 'munka', nev: 'Munka', ikon: '💼',
+      leiras: 'Pénzt ad, energiát visz.',
+      szomszedok: ['utca'], akciok: ['munka']
+    },
+    kavezo: {
+      id: 'kavezo', nev: 'Kavezo', ikon: '☕',
+      leiras: 'Meleg van, és senki nem sietteti.',
+      szomszedok: ['utca'], akciok: ['bolt', 'pihenes']
+    },
+    park: {
+      id: 'park', nev: 'Park', ikon: '🌳',
+      leiras: 'Levegö. Kiderült, hogy létezik.',
+      szomszedok: ['utca'], akciok: ['seta', 'futas'], minSzint: 2
+    }
+  };
+
+
+  var MUNKAK = [
+    {
+      id: 'pult', nev: 'Kávézoi pult', ikon: '☕', minSzint: 1,
+      percek: 120, alapber: 4200, xp: 25,
+      hatas: { energia: -18, hangulat: -8 }
+    },
+    {
+      id: 'raktár', nev: 'Raktáros', ikon: '📦', minSzint: 3,
+      percek: 180, alapber: 7800, xp: 45,
+      hatas: { energia: -30, hangulat: -10, tudo: -1 }
+    },
+    {
+      id: 'iroda', nev: 'Irodai müszak', ikon: '🖥️', minSzint: 5,
+      percek: 240, alapber: 13500, xp: 70,
+      hatas: { energia: -26, hangulat: -16 }
+    }
+  ];
+
+ 
+
+  var ESEMENYEK = [
+    {
+      id: 'elhagyott_doboz', ikon: '🚨', cim: 'Elhagytad a dobozod',
+      szoveg: 'A kabátzsebed lyukas. A fél doboz valahol az utcán maradt.',
+      suly: 8,
+      feltetel: function (a) { return (a.inventory.cigi || 0) >= 5; },
+      valasztasok: [{
+        szoveg: 'A fenébe', uzenet: 'ötbol nulla. Talán igy jobb.',
+        hatas: { targyak: { cigi: -5 }, statok: { hangulat: -6 } }
+      }]
+    },
+    {
+      id: 'kinált_kave', ikon: '☕', cim: 'Kinaltak kaveval',
+      szoveg: 'Egy ismerősöd meglát, és a kezedbe nyom egy pohárral.',
+      suly: 10,
+      valasztasok: [
+        { szoveg: 'Elfogadom', uzenet: 'Forro es ingyen van.', hatas: { statok: { energia: 14, hangulat: 6, craving: 4 } } },
+        { szoveg: 'Kösz, nem', uzenet: 'Udvarias voltál, de bántad.', hatas: { statok: { hangulat: -2 } } }
+      ]
+    },
+    {
+      id: 'esö', ikon: '🌧️', cim: 'Elkezdett esni',
+      szoveg: 'Zuhog, és persze nincs nálad esernyő.',
+      suly: 9,
+      feltetel: function (a) { return a.helyszin !== 'lakas'; },
+      valasztasok: [
+        { szoveg: 'Beallok egy kapualjába', uzenet: 'Husz perc semmittevés.', hatas: { ido: 20, statok: { hangulat: -3 } } },
+        { szoveg: 'Vegigázom', uzenet: 'Börig áztal, de haladtal.', hatas: { statok: { tudo: -2, energia: -6, hangulat: 3 } } }
+      ]
+    },
+    {
+      id: 'kinált_cigi', ikon: '🚬', cim: 'Megkináltak',
+      szoveg: 'Valaki eléd tartja a dobozt. "Csak egy szál."',
+      suly: 12,
+      feltetel: function (a) { return a.statok.craving >= 45; },
+      valasztasok: [
+        { szoveg: 'Elveszem', uzenet: 'Egy szál a zsebedben. Most mar rajtad mulik.', hatas: { targyak: { cigi: 1 }, statok: { hangulat: 4 } } },
+        { szoveg: 'Nem, köszi', uzenet: 'Nehéz volt. De megcsináltad.', hatas: { statok: { craving: -8, hangulat: 5 }, xp: 15 } }
+      ]
+    },
+    {
+      id: 'talált_penz', ikon: '💸', cim: 'Talaltál valamit',
+      szoveg: 'Egy gyürött ezres a kabátod belsö zsebében.',
+      suly: 6,
+      valasztasok: [{ szoveg: 'Zsebre', uzenet: 'A mai nap már nem lehet rosszabb.', hatas: { penz: 1000, statok: { hangulat: 5 } } }]
+    },
+    {
+      id: 'áremelés', ikon: '📈', cim: 'Áremelés',
+      szoveg: 'A boltban kiirták: a doboz mostantol drágább.',
+      suly: 5,
+      feltetel: function (a) { return a.nap >= 5; },
+      valasztasok: [{ szoveg: 'Hát persze', uzenet: 'A fogadás hirtelen jo ötletnek tünik.', hatas: { statok: { hangulat: -4, craving: 5 } } }]
+    },
+    {
+      id: 'barátod_hivott', ikon: '📱', cim: 'Csörgött a telefon',
+      szoveg: 'Bence érdeklödik, hogy állsz a fogadassal.',
+      suly: 9,
+      valasztasok: [
+        { szoveg: 'Dicsekszem', uzenet: 'Kimondtad hangosan. Most mar nem hátrálhatsz.', hatas: { statok: { hangulat: 8, craving: 3 }, xp: 10 } },
+        { szoveg: 'Nem veszem fel', uzenet: 'Késöbb ugyis visszahiv.', hatas: { statok: { hangulat: -2 } } }
+      ]
+    },
+    {
+      id: 'köhögés', ikon: '🫁', cim: 'Reggeli köhögés',
+      szoveg: 'Öt percig nem tudsz megállni. Ez uj.',
+      suly: 7,
+      feltetel: function (a) { return a.statok.tudo < 60; },
+      valasztasok: [{ szoveg: 'Elmulik', uzenet: 'Nem mult el rögtön.', hatas: { statok: { energia: -8, hangulat: -6 } } }]
+    },
+    {
+      id: 'kolléga_meghivott', ikon: '🍺', cim: 'Kocsmai meghivás',
+      szoveg: 'A kollégák levinnének egy sörre munka után.',
+      suly: 7,
+      feltetel: function (a) { return a.statisztika.munkaSzamlalo > 0; },
+      valasztasok: [
+        { szoveg: 'Megyek', uzenet: 'Jó volt. A fustös terasz kevésbe.', hatas: { ido: 60, penz: -1800, statok: { hangulat: 14, craving: 12, energia: -6 } } },
+        { szoveg: 'Ma kihagyom', uzenet: 'Hazamentél. Uncsi, de olcso.', hatas: { statok: { hangulat: -4, craving: -3 } } }
+      ]
+    },
+    {
+      id: 'megdicsértek', ikon: '⭐', cim: 'Megdicsértek',
+      szoveg: 'A fönök észrevette, hogy nem jarsz ki ötpercenkent.',
+      suly: 5,
+      feltetel: function (a) { return a.statisztika.egymasUtaniCigimentesNapok >= 2; },
+      valasztasok: [{ szoveg: 'Köszönom', uzenet: 'Jólesett.', hatas: { statok: { hangulat: 12 }, xp: 20 } }]
+    },
+    {
+      id: 'lift_elromlott', ikon: '🪜', cim: 'Nem megy a lift',
+      szoveg: 'Négy emelet gyalog. Régen ez nem tünt fel.',
+      suly: 6,
+      valasztasok: [{ szoveg: 'Nekivágok', uzenet: 'Fent kifulladtál.', hatas: { statok: { energia: -10, tudo: 1 } } }]
+    },
+    {
+      id: 'reklám', ikon: '📺', cim: 'Egy fideszes plakát',
+      szoveg: 'Egy óriásplakat pontosan azt a fideszes köcsögöt mutatja, akit utálsz.',
+      suly: 8,
+      feltetel: function (a) { return a.statok.fuggoseg > 25; },
+      valasztasok: [
+        { szoveg: 'Elfordulok', uzenet: 'Nem néztél oda. Ennyi.', hatas: { statok: { craving: 4 }, xp: 5 } },
+        { szoveg: 'Megbámulom', uzenet: 'Rossz ötlet volt.', hatas: { statok: { craving: 16, hangulat: -3 } } }
+      ]
+    }
+  ];
+
+  
+
+  var ACHIEVEMENTEK = [
+    { id: 'elso_nap', nev: 'Elsö nap', ikon: '🌅', leiras: 'Vegigcsináltál egy teljes napot.', ellenoriz: function (a) { return a.nap > 1; } },
+    { id: 'tizezer', nev: 'Tizezres', ikon: '💰', leiras: 'Volt egyszerre 10 000 Ft-od.', ellenoriz: function (a) { return a.penz >= 10000; } },
+    { id: 'het_nap', nev: 'Egy hét', ikon: '📅', leiras: 'Túl vagy 7 napon.', ellenoriz: function (a) { return a.nap > 7; } },
+    { id: 'tiszta_het', nev: 'Tiszta hét', ikon: '🫁', leiras: '7 egymast követö cigimentes nap.', ellenoriz: function (a) { return a.statisztika.egymasUtaniCigimentesNapok >= 7; } },
+    { id: 'takarekos', nev: 'Takarékos', ikon: '🏦', leiras: '25 000 Ft összegyüjtve.', ellenoriz: function (a) { return a.penz >= 25000; } },
+    { id: 'munkaorult', nev: 'Munkaörült', ikon: '💼', leiras: '10 müszak letudva.', ellenoriz: function (a) { return a.statisztika.munkaSzamlalo >= 10; } },
+    { id: 'tokeletes', nev: 'Idözitö', ikon: '🎯', leiras: 'Elsö tökéletes idözités a mini-jatékban.', ellenoriz: function (a) { return a.statisztika.tokeletesCigik >= 1; } },
+    { id: 'sportos', nev: 'Sportos', ikon: '🏃', leiras: 'Tüdo 90% fölött.', ellenoriz: function (a) { return a.statok.tudo >= 90; } },
+    { id: 'level5', nev: 'Rutinos', ikon: '⭐', leiras: 'Elérted az 5. szintet.', ellenoriz: function (a) { return a.szint >= 5; } },
+    { id: 'fuggetlen', nev: 'Független', ikon: '🔓', leiras: 'A függöseged 10% alá esett.', ellenoriz: function (a) { return a.statok.fuggoseg < 10; } },
+    { id: 'nyugodt', nev: 'Nyugodt', ikon: '😊', leiras: 'Hangulat 90% fölött.', ellenoriz: function (a) { return a.statok.hangulat >= 90; } },
+    { id: 'vegigjatszottad', nev: 'A 30. nap', ikon: '🏆', leiras: 'Elérted a fogadás vegét.', ellenoriz: function (a) { return a.nap >= 30; } }
+  ];
+
+  CIGI.data = {
+    BEALLITAS: BEALLITAS,
+    TARGYAK: TARGYAK,
+    HELYSZINEK: HELYSZINEK,
+    MUNKAK: MUNKAK,
+    ESEMENYEK: ESEMENYEK,
+    ACHIEVEMENTEK: ACHIEVEMENTEK
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.data;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+  var BEALLITAS = CIGI.data.BEALLITAS;
+
+  var ALLAPOT_VERZIO = 1;
+
+  var STAT_KULCSOK = ['tudo', 'energia', 'hangulat', 'craving', 'fuggoseg'];
+
+
+  function ujAllapot() {
+    return {
+      verzio: ALLAPOT_VERZIO,
+      nap: 1,
+      ido: BEALLITAS.NAP_KEZDET,
+      helyszin: 'lakas',
+      penz: BEALLITAS.KEZDO_PENZ,
+      statok: { tudo: 78, energia: 70, hangulat: 65, craving: 35, fuggoseg: 62 },
+      inventory: { cigi: 12, kulcs: 1 },
+      szint: 1,
+      xp: 0,
+      pontszam: 0,
+      achievementek: [],
+      story: { fejezet: 0, teljesitett: [], dontesek: {} },
+      statisztika: {
+        elszivottCigik: 0,
+        tokeletesCigik: 0,
+        napiCigik: 0,
+        osszKereset: 0,
+        osszKoltes: 0,
+        cigimentesNapok: 0,
+        egymasUtaniCigimentesNapok: 0,
+        munkaSzamlalo: 0,
+        utolsoCigiPerc: null
+      },
+      naplo: [],
+      vege: null
+    };
+  }
+
+  function abszolutPerc(allapot) {
+    return (allapot.nap - 1) * 1440 + allapot.ido;
+  }
+
+  /**
+   * 
+   * @param {string} tipus 
+   */
+  function naploz(allapot, szoveg, tipus) {
+    if (!szoveg) return allapot;
+    allapot.naplo.unshift({
+      ido: utils.oraFormatum(allapot.ido),
+      nap: allapot.nap,
+      szoveg: String(szoveg),
+      tipus: tipus || 'info'
+    });
+    if (allapot.naplo.length > BEALLITAS.NAPLO_HOSSZ) {
+      allapot.naplo.length = BEALLITAS.NAPLO_HOSSZ;
+    }
+    return allapot;
+  }
+
+  /**
+   * 
+   * 
+   * @returns {object|null} 
+   */
+  function tisztit(nyers) {
+    if (!nyers || typeof nyers !== 'object' || Array.isArray(nyers)) return null;
+
+    var eredmeny = ujAllapot();
+
+    
+    function egeszMezo(ertek, alapertek, minimum, maximum) {
+      if (ertek === undefined || ertek === null) return alapertek;
+      return Math.round(utils.korlat(ertek, minimum, maximum));
+    }
+
+    eredmeny.verzio = ALLAPOT_VERZIO;
+    eredmeny.nap = egeszMezo(nyers.nap, eredmeny.nap, 1, BEALLITAS.UTOLSO_NAP);
+    eredmeny.ido = egeszMezo(nyers.ido, eredmeny.ido, BEALLITAS.NAP_KEZDET, BEALLITAS.NAP_VEGE);
+    eredmeny.helyszin = CIGI.data.HELYSZINEK[nyers.helyszin] ? nyers.helyszin : 'lakas';
+    eredmeny.penz = egeszMezo(nyers.penz, eredmeny.penz, 0, 1e9);
+    eredmeny.szint = egeszMezo(nyers.szint, eredmeny.szint, 1, 99);
+    eredmeny.xp = egeszMezo(nyers.xp, eredmeny.xp, 0, 1e9);
+    eredmeny.pontszam = egeszMezo(nyers.pontszam, eredmeny.pontszam, 0, 1e9);
+
+    if (nyers.statok && typeof nyers.statok === 'object') {
+      STAT_KULCSOK.forEach(function (kulcs) {
+        if (nyers.statok[kulcs] !== undefined) {
+          eredmeny.statok[kulcs] = utils.kerekit(utils.korlat(nyers.statok[kulcs], 0, 100), 2);
+        }
+      });
+    }
+
+    if (nyers.inventory && typeof nyers.inventory === 'object') {
+      eredmeny.inventory = {};
+      Object.keys(nyers.inventory).forEach(function (id) {
+        if (!CIGI.data.TARGYAK[id]) return;
+        var db = Math.round(utils.korlat(nyers.inventory[id], 0, BEALLITAS.MAX_TARGY_DB));
+        if (db > 0) eredmeny.inventory[id] = db;
+      });
+    }
+
+    if (Array.isArray(nyers.achievementek)) {
+      var ervenyesAch = CIGI.data.ACHIEVEMENTEK.map(function (a) { return a.id; });
+      eredmeny.achievementek = nyers.achievementek.filter(function (id) {
+        return ervenyesAch.indexOf(id) !== -1;
+      });
+    }
+
+    if (nyers.story && typeof nyers.story === 'object') {
+      eredmeny.story = {
+        fejezet: Math.round(utils.korlat(nyers.story.fejezet, 0, 99)),
+        teljesitett: Array.isArray(nyers.story.teljesitett) ? nyers.story.teljesitett.slice(0, 50) : [],
+        dontesek: (nyers.story.dontesek && typeof nyers.story.dontesek === 'object') ? nyers.story.dontesek : {}
+      };
+    }
+
+    if (nyers.statisztika && typeof nyers.statisztika === 'object') {
+      Object.keys(eredmeny.statisztika).forEach(function (kulcs) {
+        var ertek = nyers.statisztika[kulcs];
+        if (kulcs === 'utolsoCigiPerc') {
+          eredmeny.statisztika[kulcs] = (ertek === null || ertek === undefined)
+            ? null : utils.korlat(ertek, 0, 1e9);
+          return;
+        }
+        if (ertek !== undefined) {
+          eredmeny.statisztika[kulcs] = Math.round(utils.korlat(ertek, 0, 1e9));
+        }
+      });
+    }
+
+    if (Array.isArray(nyers.naplo)) {
+      var ERVENYES_TIPUS = ['info', 'jo', 'rossz'];
+      eredmeny.naplo = nyers.naplo
+        .slice(0, BEALLITAS.NAPLO_HOSSZ)
+        .filter(function (bejegyzes) {
+          return bejegyzes && typeof bejegyzes.szoveg === 'string';
+        })
+        .map(function (bejegyzes) {
+          return {
+            ido: String(bejegyzes.ido || ''),
+            nap: Math.round(utils.korlat(bejegyzes.nap, 1, BEALLITAS.UTOLSO_NAP)),
+            szoveg: String(bejegyzes.szoveg).slice(0, 300),
+            tipus: ERVENYES_TIPUS.indexOf(bejegyzes.tipus) === -1 ? 'info' : bejegyzes.tipus
+          };
+        });
+    }
+
+    eredmeny.vege = (nyers.vege && typeof nyers.vege === 'object') ? nyers.vege : null;
+
+    return eredmeny;
+  }
+
+  CIGI.state = {
+    ALLAPOT_VERZIO: ALLAPOT_VERZIO,
+    STAT_KULCSOK: STAT_KULCSOK,
+    ujAllapot: ujAllapot,
+    abszolutPerc: abszolutPerc,
+    naploz: naploz,
+    tisztit: tisztit
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.state;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+  var allapotModul = CIGI.state;
+  var BEALLITAS = CIGI.data.BEALLITAS;
+
+  var CIMKEK = {
+    tudo: 'Tudo', energia: 'Energia', hangulat: 'Hangulat',
+    craving: 'Cigivagy', fuggoseg: 'Fuggoseg', penz: 'Penz', xp: 'XP'
+  };
+
+
+  var FORDITOTT_STAT = { craving: true, fuggoseg: true };
+
+
+  var PERC_DRAIN = {
+    energia: -0.014,
+    hangulat: -0.005
+  };
+
+  /**
+   * 
+   * 
+   * 
+   * @returns {{valtozasok: Array<{cimke:string, delta:number, jo:boolean}>}}
+   */
+  function alkalmazHatas(allapot, hatas) {
+    var valtozasok = [];
+    if (!hatas || typeof hatas !== 'object') return { valtozasok: valtozasok };
+
+    if (hatas.penz) {
+      var regiPenz = allapot.penz;
+      allapot.penz = Math.round(utils.korlat(allapot.penz + hatas.penz, 0, 1e9));
+      var penzDelta = allapot.penz - regiPenz;
+      if (penzDelta !== 0) {
+        valtozasok.push({ cimke: CIMKEK.penz, delta: penzDelta, jo: penzDelta > 0, penz: true });
+        if (penzDelta > 0) allapot.statisztika.osszKereset += penzDelta;
+        else allapot.statisztika.osszKoltes += -penzDelta;
+      }
+    }
+
+    if (hatas.statok) {
+      allapotModul.STAT_KULCSOK.forEach(function (kulcs) {
+        var delta = hatas.statok[kulcs];
+        if (!delta) return;
+        var regi = allapot.statok[kulcs];
+        allapot.statok[kulcs] = utils.kerekit(utils.korlat(regi + delta, 0, 100), 2);
+        var valodiDelta = utils.kerekit(allapot.statok[kulcs] - regi, 1);
+        if (valodiDelta !== 0) {
+          valtozasok.push({
+            cimke: CIMKEK[kulcs],
+            delta: valodiDelta,
+            jo: FORDITOTT_STAT[kulcs] ? valodiDelta < 0 : valodiDelta > 0
+          });
+        }
+      });
+    }
+
+    if (hatas.targyak) {
+      Object.keys(hatas.targyak).forEach(function (id) {
+        var db = hatas.targyak[id];
+        if (!db) return;
+        CIGI.inventory.modosit(allapot, id, db);
+        var targy = CIGI.data.TARGYAK[id];
+        valtozasok.push({
+          cimke: targy ? targy.nev : id,
+          delta: db,
+          jo: db > 0
+        });
+      });
+    }
+
+    if (hatas.xp) {
+      CIGI.progress.xpHozzaad(allapot, hatas.xp);
+      valtozasok.push({ cimke: CIMKEK.xp, delta: hatas.xp, jo: hatas.xp > 0 });
+    }
+
+    return { valtozasok: valtozasok };
+  }
+
+  /**
+   *
+   * @returns {number} 
+   */
+  function cravingUtem(allapot) {
+    return 0.030 * (0.45 + allapot.statok.fuggoseg / 55);
+  }
+
+  /**
+   * 
+   * M
+   */
+  function idoMulasHatasa(allapot, percek) {
+    if (!(percek > 0)) return;
+
+    var cravingNoveles = cravingUtem(allapot) * percek;
+    var extraHangulat = 0;
+    var extraEnergia = 0;
+
+    if (allapot.statok.craving >= 80) {
+      extraHangulat = -0.030 * percek;
+      extraEnergia = -0.012 * percek;
+    } else if (allapot.statok.craving >= 60) {
+      extraHangulat = -0.012 * percek;
+    }
+
+    alkalmazHatas(allapot, {
+      statok: {
+        craving: cravingNoveles,
+        energia: PERC_DRAIN.energia * percek + extraEnergia,
+        hangulat: PERC_DRAIN.hangulat * percek + extraHangulat
+      }
+    });
+  }
+
+  /**
+   * 
+   * @param {'tokeletes'|'korai'|'leegett'} minoseg
+   * @returns {{hatas:object, uzenet:string, xp:number, lanc:boolean}}
+   */
+  function cigiHatasa(allapot, minoseg) {
+    var utolso = allapot.statisztika.utolsoCigiPerc;
+    var most = allapotModul.abszolutPerc(allapot);
+    var lanc = utolso !== null && (most - utolso) < 45;
+
+    var tabla = {
+      tokeletes: { hangulat: 14, craving: -100, xp: 25, uzenet: 'Tokeletes idozites. Az egesz szal a tied volt.' },
+      korai: { hangulat: 5, craving: -45, xp: 6, uzenet: 'Korai volt. A fele karba veszett.' },
+      leegett: { hangulat: -4, craving: -28, xp: 3, uzenet: 'Leegett a kezedben. Ennyit errol.' }
+    };
+    var sor = tabla[minoseg] || tabla.leegett;
+
+    var tudoKar = -(2.0 + allapot.statok.fuggoseg / 45) - (lanc ? 1.5 : 0);
+    var hatas = {
+      statok: {
+        tudo: tudoKar,
+        energia: 2,
+        hangulat: sor.hangulat - (lanc ? 3 : 0),
+        craving: sor.craving,
+        fuggoseg: 3.5
+      },
+      targyak: { cigi: -1 },
+      xp: sor.xp
+    };
+
+    return {
+      hatas: hatas,
+      uzenet: sor.uzenet + (lanc ? ' (Lancdohanyzas: dupla kar.)' : ''),
+      xp: sor.xp,
+      lanc: lanc
+    };
+  }
+
+  /**
+   * 
+   * @returns {{ok:boolean, tipus?:string, cim?:string, szoveg?:string}}
+   */
+  function kritikusAllapot(allapot) {
+    if (allapot.statok.tudo <= 0) {
+      return {
+        ok: false, tipus: 'korhaz', cim: 'Korhaz',
+        szoveg: 'A tudod feladta. Egy fehér mennyezetet bamulsz, es a fogadas hirtelen nem szamit.'
+      };
+    }
+    if (allapot.statok.energia <= 0) {
+      return {
+        ok: false, tipus: 'osszeesés', cim: 'Kidoltel',
+        szoveg: 'Elfogyott az energiad, es a jarda kellemetlenul kozel kerult. A napnak vege.'
+      };
+    }
+    return { ok: true };
+  }
+
+  
+  function napiElszamolas(allapot) {
+    var cigimentes = allapot.statisztika.napiCigik === 0;
+
+    if (cigimentes) {
+      allapot.statisztika.cigimentesNapok += 1;
+      allapot.statisztika.egymasUtaniCigimentesNapok += 1;
+    } else {
+      allapot.statisztika.egymasUtaniCigimentesNapok = 0;
+    }
+
+    var fuggosegValtozas = cigimentes ? -(4 + allapot.statisztika.egymasUtaniCigimentesNapok * 0.6) : 0;
+    var tudoRegeneracio = cigimentes ? 2.5 : 0.5;
+
+    var hatas = {
+      statok: {
+        energia: 100,                 
+        hangulat: cigimentes ? 8 : 3,
+        tudo: tudoRegeneracio,
+        craving: cigimentes ? -25 : -15,
+        fuggoseg: fuggosegValtozas
+      }
+    };
+
+    var elozoStatok = utils.masolat(allapot.statok);
+    alkalmazHatas(allapot, hatas);
+    allapot.statisztika.napiCigik = 0;
+
+    return {
+      cigimentes: cigimentes,
+      elozoStatok: elozoStatok,
+      fuggosegValtozas: utils.kerekit(allapot.statok.fuggoseg - elozoStatok.fuggoseg, 1)
+    };
+  }
+
+  CIGI.stats = {
+    CIMKEK: CIMKEK,
+    PERC_DRAIN: PERC_DRAIN,
+    alkalmazHatas: alkalmazHatas,
+    cravingUtem: cravingUtem,
+    idoMulasHatasa: idoMulasHatasa,
+    cigiHatasa: cigiHatasa,
+    kritikusAllapot: kritikusAllapot,
+    napiElszamolas: napiElszamolas
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.stats;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+  var TARGYAK = CIGI.data.TARGYAK;
+  var BEALLITAS = CIGI.data.BEALLITAS;
+
+ 
+  function darab(allapot, targyId) {
+    return allapot.inventory[targyId] || 0;
+  }
+
+  /**
+   * 
+   * @returns {number} 
+   */
+  function modosit(allapot, targyId, valtozas) {
+    if (!TARGYAK[targyId]) return 0;
+    var regi = darab(allapot, targyId);
+    var uj = Math.round(utils.korlat(regi + valtozas, 0, BEALLITAS.MAX_TARGY_DB));
+    if (uj === 0) delete allapot.inventory[targyId];
+    else allapot.inventory[targyId] = uj;
+    return uj - regi;
+  }
+
+
+  function lista(allapot) {
+    return Object.keys(allapot.inventory)
+      .filter(function (id) { return TARGYAK[id] && allapot.inventory[id] > 0; })
+      .map(function (id) { return { targy: TARGYAK[id], db: allapot.inventory[id] }; })
+      .sort(function (a, b) { return a.targy.nev.localeCompare(b.targy.nev, 'hu'); });
+  }
+
+ 
+  function boltiKinalat(allapot, helyszinId) {
+    return Object.keys(TARGYAK)
+      .map(function (id) { return TARGYAK[id]; })
+      .filter(function (targy) {
+        return Array.isArray(targy.boltban) &&
+          targy.boltban.indexOf(helyszinId) !== -1 &&
+          allapot.szint >= (targy.minSzint || 1);
+      });
+  }
+
+  /**
+   * 
+   * @returns {{ok:boolean, uzenet:string}}
+   */
+  function vasarol(allapot, targyId, helyszinId) {
+    var targy = TARGYAK[targyId];
+    if (!targy) return { ok: false, uzenet: 'Ilyen targy nincs.' };
+    if (!Array.isArray(targy.boltban) || targy.boltban.indexOf(helyszinId) === -1) {
+      return { ok: false, uzenet: 'Ezt itt nem arujak.' };
+    }
+    if (allapot.szint < (targy.minSzint || 1)) {
+      return { ok: false, uzenet: 'Ehhez ' + targy.minSzint + '. szint kell.' };
+    }
+    if (allapot.penz < targy.ar) {
+      return { ok: false, uzenet: 'Nincs eleg penzed. Hianyzik ' + utils.penzFormatum(targy.ar - allapot.penz) + '.' };
+    }
+
+    var kapottTargyak = targy.targyak;
+    if (!kapottTargyak || Object.keys(kapottTargyak).length === 0) {
+      kapottTargyak = {};
+      kapottTargyak[targyId] = 1;
+    }
+
+    var telitett = Object.keys(kapottTargyak).some(function (id) {
+      return darab(allapot, id) + kapottTargyak[id] > BEALLITAS.MAX_TARGY_DB;
+    });
+    if (telitett) return { ok: false, uzenet: 'Ennyi mar nem fer el nalad.' };
+
+    CIGI.stats.alkalmazHatas(allapot, { penz: -targy.ar, targyak: kapottTargyak });
+
+    return { ok: true, uzenet: targy.nev + ' megveve ' + utils.penzFormatum(targy.ar) + '-ert.' };
+  }
+
+  /**
+   * 
+   * @returns {{ok:boolean, uzenet:string, valtozasok?:Array}}
+   */
+  function hasznal(allapot, targyId) {
+    var targy = TARGYAK[targyId];
+    if (!targy) return { ok: false, uzenet: 'Ilyen targy nincs.' };
+    if (!targy.hasznalhato) return { ok: false, uzenet: targy.nev + ' nem hasznalhato el.' };
+    if (darab(allapot, targyId) <= 0) return { ok: false, uzenet: 'Nincs nalad ' + targy.nev + '.' };
+
+    modosit(allapot, targyId, -1);
+
+    var hatas = { statok: targy.hatas || {} };
+    if (targy.targyak) hatas.targyak = targy.targyak;
+    var eredmeny = CIGI.stats.alkalmazHatas(allapot, hatas);
+
+    return {
+      ok: true,
+      uzenet: targy.nev + ' elhasznalva.',
+      valtozasok: eredmeny.valtozasok
+    };
+  }
+
+  CIGI.inventory = {
+    darab: darab,
+    modosit: modosit,
+    lista: lista,
+    boltiKinalat: boltiKinalat,
+    vasarol: vasarol,
+    hasznal: hasznal
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.inventory;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+  var ACHIEVEMENTEK = CIGI.data.ACHIEVEMENTEK;
+
+  function szintKuszob(szint) {
+    var biztonsagosSzint = Math.max(1, Math.round(Number(szint) || 1));
+    return 100 + (biztonsagosSzint - 1) * 80;
+  }
+
+  /**
+   * 
+   * 
+   * @returns {{szintlepes:boolean, ujSzint:number, szintek:number}}
+   */
+  function xpHozzaad(allapot, mennyiseg) {
+    var xp = Math.round(Number(mennyiseg) || 0);
+    if (xp <= 0) return { szintlepes: false, ujSzint: allapot.szint, szintek: 0 };
+
+    allapot.xp += xp;
+    allapot.pontszam += xp;
+
+    var lepesek = 0;
+    while (allapot.xp >= szintKuszob(allapot.szint) && allapot.szint < 99) {
+      allapot.xp -= szintKuszob(allapot.szint);
+      allapot.szint += 1;
+      lepesek += 1;
+    }
+
+    return { szintlepes: lepesek > 0, ujSzint: allapot.szint, szintek: lepesek };
+  }
+
+  
+  function szintSzazalek(allapot) {
+    var kuszob = szintKuszob(allapot.szint);
+    return utils.korlat((allapot.xp / kuszob) * 100, 0, 100);
+  }
+
+  /**
+   * 
+   * @returns {Array<object>} 
+   */
+  function achievementEllenorzes(allapot) {
+    var ujak = [];
+    ACHIEVEMENTEK.forEach(function (ach) {
+      if (allapot.achievementek.indexOf(ach.id) !== -1) return;
+      var teljesult = false;
+      try {
+        teljesult = !!ach.ellenoriz(allapot);
+      } catch (hiba) {
+        teljesult = false;   
+      }
+      if (teljesult) {
+        allapot.achievementek.push(ach.id);
+        ujak.push(ach);
+      }
+    });
+    return ujak;
+  }
+
+  
+  function achievementLista(allapot) {
+    return ACHIEVEMENTEK.map(function (ach) {
+      return {
+        id: ach.id, nev: ach.nev, ikon: ach.ikon, leiras: ach.leiras,
+        feloldva: allapot.achievementek.indexOf(ach.id) !== -1
+      };
+    });
+  }
+
+  CIGI.progress = {
+    szintKuszob: szintKuszob,
+    xpHozzaad: xpHozzaad,
+    szintSzazalek: szintSzazalek,
+    achievementEllenorzes: achievementEllenorzes,
+    achievementLista: achievementLista
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.progress;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var BEALLITAS = CIGI.data.BEALLITAS;
+
+ 
+  function napszak(percek) {
+    if (percek < 10 * 60) return { cimke: 'Reggel', ikon: '🌅' };
+    if (percek < 12 * 60) return { cimke: 'Delelott', ikon: '☀️' };
+    if (percek < 14 * 60) return { cimke: 'Del', ikon: '🌤️' };
+    if (percek < 18 * 60) return { cimke: 'Delutan', ikon: '🌇' };
+    if (percek < 20 * 60) return { cimke: 'Este', ikon: '🌆' };
+    return { cimke: 'Ejszaka', ikon: '🌙' };
+  }
+
+  /** Hany perc van meg a napbol. */
+  function hatralevoPercek(allapot) {
+    return Math.max(0, BEALLITAS.NAP_VEGE - allapot.ido);
+  }
+
+  /**
+   * Ido lepetese a passziv stat-hatasokkal egyutt.
+   * A nap vegen tulcsordulo idot levagja es jelzi, hogy vege a napnak.
+   * @returns {{eltelt:number, napVege:boolean}}
+   */
+  function idotLeptet(allapot, percek) {
+    var keres = Math.max(0, Math.round(Number(percek) || 0));
+    var elerheto = hatralevoPercek(allapot);
+    var eltelt = Math.min(keres, elerheto);
+
+    if (eltelt > 0) {
+      allapot.ido += eltelt;
+      CIGI.stats.idoMulasHatasa(allapot, eltelt);
+    }
+
+    return { eltelt: eltelt, napVege: allapot.ido >= BEALLITAS.NAP_VEGE };
+  }
+
+  /** Belefer-e meg a napba az adott hosszusagu tevekenyseg. */
+  function belefer(allapot, percek) {
+    return hatralevoPercek(allapot) >= percek;
+  }
+
+  /**
+   * Uj nap inditasa. A hivo felelossege, hogy elotte lefusson a napi elszamolas.
+   * @returns {{utolsoNapVolt:boolean}}
+   */
+  function kovetkezoNap(allapot) {
+    if (allapot.nap >= BEALLITAS.UTOLSO_NAP) return { utolsoNapVolt: true };
+    allapot.nap += 1;
+    allapot.ido = BEALLITAS.NAP_KEZDET;
+    allapot.helyszin = 'lakas';
+    return { utolsoNapVolt: false };
+  }
+
+  CIGI.timesys = {
+    napszak: napszak,
+    hatralevoPercek: hatralevoPercek,
+    idotLeptet: idotLeptet,
+    belefer: belefer,
+    kovetkezoNap: kovetkezoNap
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.timesys;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* Mini-jatekok tiszta logikaja (idozites-sav). A megjelenites a ui.js dolga. */
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+
+  var SAV_HOSSZ = 100;
+
+  /**
+   * Cigaretta mini-jatek: a parazs 0-tol 100-ig halad, a jatekosnak a
+   * veszelyzonaban kell megallitania. A zona a szinttel szukul.
+   * @param {function} rng 0..1 generator
+   * @param {number} szint jatekos szintje (nehezseghez)
+   */
+  function cigiJatek(rng, szint) {
+    var biztosSzint = Math.max(1, Number(szint) || 1);
+    var zonaSzelesseg = utils.korlat(20 - (biztosSzint - 1) * 1.5, 8, 20);
+    var zonaKezdet = utils.kerekit(62 + rng() * (94 - zonaSzelesseg - 62), 1);
+    return {
+      hossz: SAV_HOSSZ,
+      zonaKezdet: zonaKezdet,
+      zonaVeg: utils.kerekit(zonaKezdet + zonaSzelesseg, 1),
+      // szazalek / masodperc
+      sebesseg: utils.kerekit(26 + biztosSzint * 1.6 + rng() * 8, 1)
+    };
+  }
+
+  /**
+   * Idozites kiertekelese.
+   * @param {number} pozicio a parazs helye a kattintaskor (0..100)
+   * @returns {'korai'|'tokeletes'|'leegett'}
+   */
+  function cigiErtekeles(pozicio, jatek) {
+    var hely = utils.korlat(pozicio, 0, jatek.hossz);
+    if (hely < jatek.zonaKezdet) return 'korai';
+    if (hely <= jatek.zonaVeg) return 'tokeletes';
+    return 'leegett';
+  }
+
+  /**
+   * Munka mini-jatek egy kore: oda-vissza mozgo jelolo es egy celzona.
+   */
+  function munkaKor(rng, szint) {
+    var biztosSzint = Math.max(1, Number(szint) || 1);
+    var zonaSzelesseg = utils.korlat(24 - (biztosSzint - 1) * 1.2, 12, 24);
+    var zonaKezdet = utils.kerekit(rng() * (SAV_HOSSZ - zonaSzelesseg), 1);
+    return {
+      hossz: SAV_HOSSZ,
+      zonaKezdet: zonaKezdet,
+      zonaVeg: utils.kerekit(zonaKezdet + zonaSzelesseg, 1),
+      sebesseg: utils.kerekit(48 + biztosSzint * 3 + rng() * 14, 1)
+    };
+  }
+
+  /** Talalat-e a jelolo pozicioja a celzonaban. */
+  function munkaTalalat(pozicio, kor) {
+    var hely = utils.korlat(pozicio, 0, kor.hossz);
+    return hely >= kor.zonaKezdet && hely <= kor.zonaVeg;
+  }
+
+  /**
+   * Fizetesszorzo a talalatok aranyabol: 0 talalat 0.6x, minden talalat 1.4x.
+   */
+  function munkaSzorzo(talalatok, korok) {
+    var osszes = Math.max(1, Math.round(Number(korok) || 1));
+    var jo = utils.korlat(talalatok, 0, osszes);
+    return utils.kerekit(0.6 + (jo / osszes) * 0.8, 2);
+  }
+
+  /** Kifizetes szazasra kerekitve, hogy a HUD-on szep szam alljon. */
+  function munkaBer(munka, szorzo) {
+    return Math.round((munka.alapber * szorzo) / 100) * 100;
+  }
+
+  CIGI.minigame = {
+    SAV_HOSSZ: SAV_HOSSZ,
+    KOROK_SZAMA: 3,
+    cigiJatek: cigiJatek,
+    cigiErtekeles: cigiErtekeles,
+    munkaKor: munkaKor,
+    munkaTalalat: munkaTalalat,
+    munkaSzorzo: munkaSzorzo,
+    munkaBer: munkaBer
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.minigame;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* Random esemenyek kivalasztasa es feloldasa. */
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+  var ESEMENYEK = CIGI.data.ESEMENYEK;
+
+  /** Kb. 4 oranként egy esemeny; a hivo dontheti el, hogy hasznalja-e. */
+  var ESELY_PERCENKENT = 0.004;
+
+  /** Az adott allapotban ervenyes esemenyek. */
+  function elerhetoEsemenyek(allapot) {
+    return ESEMENYEK.filter(function (esemeny) {
+      if (typeof esemeny.feltetel !== 'function') return true;
+      try {
+        return !!esemeny.feltetel(allapot);
+      } catch (hiba) {
+        return false;    // hibas feltetel eseten inkabb kihagyjuk
+      }
+    });
+  }
+
+  /** Bekovetkezik-e esemeny az eltelt percek alatt. */
+  function esemenyIndul(rng, percek) {
+    var esely = utils.korlat(percek * ESELY_PERCENKENT, 0, 0.75);
+    return rng() < esely;
+  }
+
+  /**
+   * Sulyozott esemenyvalasztas. Ugyanaz az esemeny ketszer egymas utan nem jon.
+   * @param {string|null} elozoId
+   * @returns {object|null}
+   */
+  function esemenyValaszt(rng, allapot, elozoId) {
+    var jeloltek = elerhetoEsemenyek(allapot).filter(function (e) { return e.id !== elozoId; });
+    if (jeloltek.length === 0) jeloltek = elerhetoEsemenyek(allapot);
+    return utils.sulyozottElem(rng, jeloltek, function (e) { return e.suly || 1; });
+  }
+
+  /**
+   * Egy esemenyvalasztas vegrehajtasa.
+   * @returns {{ok:boolean, uzenet:string, ido:number, valtozasok:Array}}
+   */
+  function valasztFeloldas(allapot, esemeny, valasztasIndex) {
+    if (!esemeny || !Array.isArray(esemeny.valasztasok)) {
+      return { ok: false, uzenet: 'Ervenytelen esemeny.', ido: 0, valtozasok: [] };
+    }
+    var valasztas = esemeny.valasztasok[valasztasIndex];
+    if (!valasztas) {
+      return { ok: false, uzenet: 'Ervenytelen valasztas.', ido: 0, valtozasok: [] };
+    }
+
+    var hatas = valasztas.hatas || {};
+    var eredmeny = CIGI.stats.alkalmazHatas(allapot, hatas);
+
+    return {
+      ok: true,
+      uzenet: valasztas.uzenet || '',
+      ido: Math.max(0, Number(hatas.ido) || 0),
+      valtozasok: eredmeny.valtozasok
+    };
+  }
+
+  CIGI.events = {
+    ESELY_PERCENKENT: ESELY_PERCENKENT,
+    elerhetoEsemenyek: elerhetoEsemenyek,
+    esemenyIndul: esemenyIndul,
+    esemenyValaszt: esemenyValaszt,
+    valasztFeloldas: valasztFeloldas
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.events;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* Sztori: fejezetek a 30 napos fogadas iven, es a befejezes kiertekelese. */
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var BEALLITAS = CIGI.data.BEALLITAS;
+
+  /**
+   * Fejezetek. Mindegyik a megadott nap kezdetén indul, egyszer.
+   * A valasztasok 'dontes' kulcsa bekerul az allapot.story.dontesek objektumba.
+   */
+  var FEJEZETEK = [
+    {
+      id: 'f1_fogadas', nap: 1, ikon: '🤝', cim: '1. fejezet - A fogadas',
+      szoveg: 'Bence, a szobatarsad, atnyul az asztal folott a reggeli kave mellett. ' +
+        '"Otvenezer. Harminc nap. Ha kibirod cigi nelkul, a penz a tied. Ha nem, te fizeted a kozos szamlakat." ' +
+        'A doboz meg ott van a zsebedben, tizenket szallal.',
+      valasztasok: [
+        {
+          szoveg: 'Kezet fogok vele', dontes: 'kemeny',
+          uzenet: 'Megvan a fogadas. Harminc nap.',
+          hatas: { statok: { hangulat: 10, craving: 5 }, xp: 20 }
+        },
+        {
+          szoveg: 'Lealkudom - eleg, ha csokkentem', dontes: 'ovatos',
+          uzenet: 'Bence vigyorog. "Ahogy gondolod. Kisebb tet, kisebb dicsoseg."',
+          hatas: { statok: { hangulat: 4 }, xp: 5 }
+        }
+      ]
+    },
+    {
+      id: 'f2_elso_roham', nap: 3, ikon: '🌪️', cim: '2. fejezet - A harmadik nap',
+      szoveg: 'A harmadik nap a legrosszabb, ezt mindenki mondta, es most kiderult, hogy igazuk volt. ' +
+        'Ket ora alatt haromszor nyultal a zsebedbe egy doboz utan, ami nincs ott.',
+      valasztasok: [
+        {
+          szoveg: 'Lemegyek setalni egyet', dontes: 'seta',
+          uzenet: 'Husz perc a hidegben. Mukodott.',
+          hatas: { statok: { craving: -20, energia: -6, hangulat: 6 }, ido: 20, xp: 15 }
+        },
+        {
+          szoveg: 'Bevagok egy kavet es atvészelem', dontes: 'kave',
+          uzenet: 'A kave segit is meg nem is.',
+          hatas: { statok: { energia: 12, craving: 6 }, xp: 5 }
+        }
+      ]
+    },
+    {
+      id: 'f3_ellenorzes', nap: 7, ikon: '🔍', cim: '3. fejezet - Egy het',
+      szoveg: 'Bence megall az ajtoban. "Na. Hany szal volt eddig?" ' +
+        'Pontosan tudja, hogy nem tudja ellenorizni.',
+      valasztasok: [
+        {
+          szoveg: 'Megmondom az igazat', dontes: 'oszinte',
+          uzenet: 'Kimondtad. Konnyebb lett.',
+          hatas: { statok: { hangulat: 12, craving: -6 }, xp: 30 }
+        },
+        {
+          szoveg: 'Kerekitek lefele', dontes: 'hazug',
+          uzenet: 'Elhitte. Te nem.',
+          hatas: { statok: { hangulat: -8, craving: 8 }, penz: 0, xp: 5 }
+        }
+      ]
+    },
+    {
+      id: 'f4_fustolo', nap: 12, ikon: '💨', cim: '4. fejezet - A fustolo',
+      szoveg: 'A munkahelyi fustolo a hatso lepcsohaznal van, es ott dolnek el a dolgok: ' +
+        'ki kap jo muszakot, ki nem. Ott allnak most is, es integetnek, hogy menj.',
+      valasztasok: [
+        {
+          szoveg: 'Bemegyek, de nem gyujtok ra', dontes: 'bement',
+          uzenet: 'Fel oraig alltal a fustben. Megertetted a beosztast, de draga volt.',
+          hatas: { statok: { craving: 18, tudo: -1, hangulat: 6 }, ido: 30, penz: 1500, xp: 15 }
+        },
+        {
+          szoveg: 'Maradok bent', dontes: 'kimaradt',
+          uzenet: 'Kimaradtal a pletykabol. Es a fustbol is.',
+          hatas: { statok: { craving: -5, hangulat: -5 }, xp: 20 }
+        }
+      ]
+    },
+    {
+      id: 'f5_fiok', nap: 18, ikon: '🗄️', cim: '5. fejezet - A fiok',
+      szoveg: 'A konyhai fiok aljan, a szamlak alatt ott lapul egy regi, felig teli doboz. ' +
+        'Elfelejtetted, hogy ott van. Most mar nem fogod elfelejteni.',
+      valasztasok: [
+        {
+          szoveg: 'Kidobom', dontes: 'kidobta',
+          uzenet: 'A kukaban landolt. Ket percig bantad.',
+          hatas: { targyak: { cigi: -8 }, statok: { hangulat: 8, craving: -10 }, xp: 40 }
+        },
+        {
+          szoveg: 'Visszateszem. Csak vesztetsegre.', dontes: 'megtartotta',
+          uzenet: 'Ott maradt a fiokban. Es a fejedben is.',
+          hatas: { targyak: { cigi: 8 }, statok: { craving: 12, hangulat: -3 } }
+        }
+      ]
+    },
+    {
+      id: 'f6_ajanlat', nap: 24, ikon: '💼', cim: '6. fejezet - Az ajanlat',
+      szoveg: 'Bence idegesen dobol az asztalon. "Figyelj. Adok husz rongyot most, ' +
+        'es lezarjuk a fogadast. Dontetlen." Hat nap van hatra.',
+      /* A kiszallas lezarja a fogadast (dontetlen befejezes), ezert nem
+         szabad a kiemelt elso gombnak lennie - az ajanlaskent olvasodna. */
+      valasztasok: [
+        {
+          szoveg: 'Hat nap. Kibirom.', dontes: 'kitartott',
+          uzenet: 'Bence bolintott. Elso alkalommal komolyan.',
+          hatas: { statok: { hangulat: 15, craving: -8 }, xp: 60 }
+        },
+        {
+          szoveg: 'Elfogadom a penzt - lezarjuk a fogadast', dontes: 'kiszallt',
+          uzenet: 'Husz rongy a zsebedben, es egy fogadas, ami mar nem szol semmirol.',
+          hatas: { penz: 20000, statok: { hangulat: -10 } }
+        }
+      ]
+    },
+    {
+      id: 'f7_utolso', nap: 30, ikon: '🏁', cim: '7. fejezet - Az utolso nap',
+      szoveg: 'Harmincadik nap. Ma este elszamolas lesz, akarhogy is alakult. ' +
+        'A tuedd, a penztarcad es Bence egyarant szamon fog kerni.',
+      valasztasok: [
+        {
+          szoveg: 'Vegigcsinalom', dontes: 'finale',
+          uzenet: 'Meg egy nap.',
+          hatas: { statok: { hangulat: 5 }, xp: 25 }
+        }
+      ]
+    }
+  ];
+
+  /**
+   * A soron kovetkezo, meg nem jatszott fejezet az aktualis napra.
+   * @returns {object|null}
+   */
+  function esedekesFejezet(allapot) {
+    for (var i = 0; i < FEJEZETEK.length; i++) {
+      var fejezet = FEJEZETEK[i];
+      if (fejezet.nap > allapot.nap) continue;
+      if (allapot.story.teljesitett.indexOf(fejezet.id) !== -1) continue;
+      return fejezet;
+    }
+    return null;
+  }
+
+  /**
+   * Fejezetvalasztas rogzitese es hatasainak alkalmazasa.
+   * @returns {{ok:boolean, uzenet:string, ido:number, valtozasok:Array}}
+   */
+  function fejezetValasztas(allapot, fejezet, valasztasIndex) {
+    if (!fejezet || !Array.isArray(fejezet.valasztasok)) {
+      return { ok: false, uzenet: 'Ervenytelen fejezet.', ido: 0, valtozasok: [] };
+    }
+    var valasztas = fejezet.valasztasok[valasztasIndex];
+    if (!valasztas) {
+      return { ok: false, uzenet: 'Ervenytelen valasztas.', ido: 0, valtozasok: [] };
+    }
+
+    if (allapot.story.teljesitett.indexOf(fejezet.id) === -1) {
+      allapot.story.teljesitett.push(fejezet.id);
+    }
+    allapot.story.fejezet = Math.max(allapot.story.fejezet, allapot.story.teljesitett.length);
+    if (valasztas.dontes) allapot.story.dontesek[fejezet.id] = valasztas.dontes;
+
+    var hatas = valasztas.hatas || {};
+    var eredmeny = CIGI.stats.alkalmazHatas(allapot, hatas);
+
+    return {
+      ok: true,
+      uzenet: valasztas.uzenet || '',
+      ido: Math.max(0, Number(hatas.ido) || 0),
+      valtozasok: eredmeny.valtozasok
+    };
+  }
+
+  /**
+   * A 30 nap vegen (vagy kritikus allapotnal) a befejezes kiszamitasa.
+   * @param {object} allapot
+   * @param {string|null} kritikusTipus 'korhaz' | 'osszeesés' | null
+   * @returns {{tipus:string, cim:string, szoveg:string, jutalom:number}}
+   */
+  function befejezes(allapot, kritikusTipus) {
+    if (kritikusTipus === 'korhaz') {
+      return {
+        tipus: 'korhaz', cim: 'Rossz vege',
+        szoveg: 'A fogadas nem szamit tobbe. Bence behozta a taskadat a korhazba, es nem szolt egy szot sem. ' +
+          'Van, amit nem lehet penzben merni.',
+        jutalom: 0
+      };
+    }
+
+    var kiszallt = allapot.story.dontesek.f6_ajanlat === 'kiszallt';
+    var sorozat = allapot.statisztika.egymasUtaniCigimentesNapok;
+    var fuggoseg = allapot.statok.fuggoseg;
+
+    if (kiszallt) {
+      return {
+        tipus: 'dontetlen', cim: 'Dontetlen',
+        szoveg: 'A husz rongy elment az elso heten. A fogadas viszont megmaradt kerdesnek: ' +
+          'vajon kibirtad volna? Sosem fogod megtudni.',
+        jutalom: 0
+      };
+    }
+
+    if (fuggoseg < 10 && sorozat >= 7) {
+      return {
+        tipus: 'gyozelem', cim: 'Megnyerted',
+        szoveg: 'Bence szo nelkul leszamolja az otvenezret az asztalra. ' +
+          'A furcsa az, hogy mar nem is a penz miatt csinaltad. Harminc nap, es a zsebed ures maradt - ' +
+          'a jo ertelemben.',
+        jutalom: BEALLITAS.FOGADAS_TETJE
+      };
+    }
+
+    if (fuggoseg < 30) {
+      return {
+        tipus: 'reszleges', cim: 'Fele siker',
+        szoveg: 'Bence megnezi a szamokat, es felezi a tetet. "Nem nyerted meg. De nem is buktad el. ' +
+          'Ez tobb, mint amire szamitottam."',
+        jutalom: Math.round(BEALLITAS.FOGADAS_TETJE / 2)
+      };
+    }
+
+    return {
+      tipus: 'vereseg', cim: 'Elbuktad',
+      szoveg: 'Bence nem gunyolodik, es ez rosszabb. "Jovo honapban ujra?" - kerdezi. ' +
+        'A kozos szamlak most a te nevedre mennek.',
+      jutalom: 0
+    };
+  }
+
+  CIGI.story = {
+    FEJEZETEK: FEJEZETEK,
+    esedekesFejezet: esedekesFejezet,
+    fejezetValasztas: fejezetValasztas,
+    befejezes: befejezes
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.story;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* Mentes/betoltes localStorage-ba, serulesbiztosan. */
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+
+  var MENTES_KULCS = 'cigi-szimulator-mentes-v1';
+
+  /** Elerheto-e a localStorage (privat mod / letiltas eseten nem). */
+  function taroloElerheto(tarolo) {
+    try {
+      var proba = '__cigi_proba__';
+      tarolo.setItem(proba, '1');
+      tarolo.removeItem(proba);
+      return true;
+    } catch (hiba) {
+      return false;
+    }
+  }
+
+  /** Alapertelmezett tarolo: a bongeszo localStorage-a, ha van. */
+  function alapTarolo() {
+    if (typeof globalThis.localStorage === 'undefined') return null;
+    return taroloElerheto(globalThis.localStorage) ? globalThis.localStorage : null;
+  }
+
+  /**
+   * @returns {{ok:boolean, uzenet:string}}
+   */
+  function ment(allapot, tarolo) {
+    var hasznalt = tarolo || alapTarolo();
+    if (!hasznalt) return { ok: false, uzenet: 'A bongeszo nem engedi a mentest.' };
+    try {
+      hasznalt.setItem(MENTES_KULCS, JSON.stringify(allapot));
+      return { ok: true, uzenet: 'Mentve.' };
+    } catch (hiba) {
+      return { ok: false, uzenet: 'A mentes nem sikerult (megtelt a tarhely?).' };
+    }
+  }
+
+  /**
+   * Betoltes. Serult vagy hianyzo mentesnel null-t ad, nem dob kivetelt.
+   * @returns {object|null} tisztitott allapot
+   */
+  function betolt(tarolo) {
+    var hasznalt = tarolo || alapTarolo();
+    if (!hasznalt) return null;
+    var nyersSzoveg;
+    try {
+      nyersSzoveg = hasznalt.getItem(MENTES_KULCS);
+    } catch (hiba) {
+      return null;
+    }
+    if (!nyersSzoveg) return null;
+
+    var nyers;
+    try {
+      nyers = JSON.parse(nyersSzoveg);
+    } catch (hiba) {
+      return null;   // olvashatatlan mentes: inkabb uj jatek, mint osszeomlas
+    }
+    return CIGI.state.tisztit(nyers);
+  }
+
+  /** Van-e egyaltalan mentes. */
+  function vanMentes(tarolo) {
+    return betolt(tarolo) !== null;
+  }
+
+  /** Mentes torlese. */
+  function torol(tarolo) {
+    var hasznalt = tarolo || alapTarolo();
+    if (!hasznalt) return { ok: false, uzenet: 'Nincs elerheto tarolo.' };
+    try {
+      hasznalt.removeItem(MENTES_KULCS);
+      return { ok: true, uzenet: 'Mentes torolve.' };
+    } catch (hiba) {
+      return { ok: false, uzenet: 'A torles nem sikerult.' };
+    }
+  }
+
+  CIGI.save = {
+    MENTES_KULCS: MENTES_KULCS,
+    ment: ment,
+    betolt: betolt,
+    vanMentes: vanMentes,
+    torol: torol
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.save;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* Jatekmenet-vezerles: akciok, idozites, esemeny- es napvaltas-kezeles.
+   Szandekosan nem ismer DOM-ot - a ui.js rendereli az itt keletkezo eredmenyeket. */
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+  var adat = CIGI.data;
+  var allapotModul = CIGI.state;
+
+  var AKCIO_IDO = {
+    mozgas: adat.BEALLITAS.MOZGAS_PERC,
+    pihenes: 30,
+    seta: 20,
+    futas: 40,
+    cigi: 8
+  };
+
+  /**
+   * Uj jatekmenet.
+   * @param {object} allapot mar tisztitott jatekallapot
+   * @param {number} [mag] RNG mag - teszteknel rogzitheto
+   */
+  function createJatek(allapot, mag) {
+    return {
+      allapot: allapot,
+      rng: utils.veletlenGenerator(mag === undefined ? Date.now() : mag),
+      fuggoEsemeny: null,
+      fuggoFejezet: null,
+      utolsoEsemenyId: null,
+      aktivMiniJatek: null
+    };
+  }
+
+  /** Egyseges eredmeny-objektum a UI-nak. */
+  function eredmeny(ok, uzenet, tipus) {
+    return {
+      ok: ok,
+      uzenet: uzenet || '',
+      tipus: tipus || 'info',
+      valtozasok: [],
+      ujAchievementek: [],
+      szintlepes: null,
+      kovetkezo: null
+    };
+  }
+
+  /** Blokkolja-e valami az akciokat (fuggo esemeny, fejezet, vege). */
+  function foglalt(jatek) {
+    return !!(jatek.allapot.vege || jatek.fuggoEsemeny || jatek.fuggoFejezet);
+  }
+
+  /**
+   * Akcio lezarasa: naplozas, achievementek, szintlepes-jelzes.
+   */
+  function lezar(jatek, eredm, elozoSzint) {
+    var allapot = jatek.allapot;
+
+    if (eredm.uzenet) allapotModul.naploz(allapot, eredm.uzenet, eredm.tipus);
+
+    eredm.ujAchievementek = CIGI.progress.achievementEllenorzes(allapot);
+    eredm.ujAchievementek.forEach(function (ach) {
+      allapotModul.naploz(allapot, 'Achievement feloldva: ' + ach.nev, 'jo');
+    });
+
+    if (allapot.szint > elozoSzint) {
+      eredm.szintlepes = { ujSzint: allapot.szint };
+      allapotModul.naploz(allapot, 'Szintlepes! ' + allapot.szint + '. szint.', 'jo');
+    }
+
+    return eredm;
+  }
+
+  /**
+   * Idomulas + kovetkezmenyek. Prioritas: jatek vege > nap vege > sztori > esemeny.
+   * @returns {object|null} 'kovetkezo' leiro a UI-nak
+   */
+  function idoLeptetes(jatek, percek) {
+    var allapot = jatek.allapot;
+    var lepes = CIGI.timesys.idotLeptet(allapot, percek);
+
+    var kritikus = CIGI.stats.kritikusAllapot(allapot);
+    if (!kritikus.ok) {
+      if (kritikus.tipus === 'korhaz') {
+        allapot.vege = CIGI.story.befejezes(allapot, 'korhaz');
+        return { tipus: 'vege', befejezes: allapot.vege };
+      }
+      // Osszeeses: nem jatek vege, csak kenyszeru napzaras.
+      return { tipus: 'napVege', ok: false, cim: kritikus.cim, szoveg: kritikus.szoveg };
+    }
+
+    if (lepes.napVege) {
+      return { tipus: 'napVege', ok: true, cim: 'A nap vege', szoveg: 'Huszonket ora. Ennyi volt mara.' };
+    }
+
+    if (lepes.eltelt > 0 && CIGI.events.esemenyIndul(jatek.rng, lepes.eltelt)) {
+      var esemeny = CIGI.events.esemenyValaszt(jatek.rng, allapot, jatek.utolsoEsemenyId);
+      if (esemeny) {
+        jatek.fuggoEsemeny = esemeny;
+        jatek.utolsoEsemenyId = esemeny.id;
+        return { tipus: 'esemeny', esemeny: esemeny };
+      }
+    }
+
+    return null;
+  }
+
+  /** Sztori-fejezet indul-e most (nap elejen vagy akcio utan). */
+  function fejezetEllenorzes(jatek) {
+    if (jatek.fuggoFejezet || jatek.allapot.vege) return null;
+    var fejezet = CIGI.story.esedekesFejezet(jatek.allapot);
+    if (!fejezet) return null;
+    jatek.fuggoFejezet = fejezet;
+    return { tipus: 'story', fejezet: fejezet };
+  }
+
+  /* --------------------------------- Akciok --------------------------------- */
+
+  /** Mozgas szomszedos helyszinre. */
+  function mozgas(jatek, celId) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (foglalt(jatek)) return eredmeny(false, 'Eloszor fejezd be, ami folyamatban van.', 'rossz');
+
+    var jelenlegi = adat.HELYSZINEK[allapot.helyszin];
+    var cel = adat.HELYSZINEK[celId];
+    if (!cel) return eredmeny(false, 'Ilyen helyszin nincs.', 'rossz');
+    if (celId === allapot.helyszin) return eredmeny(false, 'Mar itt vagy.', 'rossz');
+    if (jelenlegi.szomszedok.indexOf(celId) === -1) {
+      return eredmeny(false, 'Oda innen nem jutsz el kozvetlenul.', 'rossz');
+    }
+    if (allapot.szint < (cel.minSzint || 1)) {
+      return eredmeny(false, cel.nev + ' a(z) ' + cel.minSzint + '. szinttol nyilik meg.', 'rossz');
+    }
+    if (!CIGI.timesys.belefer(allapot, AKCIO_IDO.mozgas)) {
+      return eredmeny(false, 'Ehhez ma mar nincs ido.', 'rossz');
+    }
+
+    allapot.helyszin = celId;
+    var eredm = eredmeny(true, cel.ikon + ' ' + cel.nev, 'info');
+    eredm.kovetkezo = idoLeptetes(jatek, AKCIO_IDO.mozgas) || fejezetEllenorzes(jatek);
+    return lezar(jatek, eredm, elozoSzint);
+  }
+
+  /**
+   * Idotolto tevekenysegek (pihenes, seta, futas) kozos vaza.
+   * @param {string} tipusId 'pihenes' | 'seta' | 'futas'
+   */
+  function tevekenyseg(jatek, tipusId) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (foglalt(jatek)) return eredmeny(false, 'Eloszor fejezd be, ami folyamatban van.', 'rossz');
+
+    var leirasok = {
+      pihenes: {
+        percek: AKCIO_IDO.pihenes, uzenet: 'Fel ora semmittevés. Meglepoen sokat szamit.',
+        hatas: { statok: { energia: 16, hangulat: 10, craving: -8 } }, xp: 8
+      },
+      seta: {
+        percek: AKCIO_IDO.seta, uzenet: 'Setaltal egy kort. A cigivagy alabbhagyott.',
+        hatas: { statok: { energia: -5, hangulat: 6, craving: -16, tudo: 0.5 } }, xp: 12
+      },
+      futas: {
+        percek: AKCIO_IDO.futas, uzenet: 'Lefutottad a kort. Fajt, de a tudod halas.',
+        hatas: { statok: { energia: -22, hangulat: 14, craving: -22, tudo: 3 } }, xp: 30
+      }
+    };
+    var leiras = leirasok[tipusId];
+    if (!leiras) return eredmeny(false, 'Ismeretlen tevekenyseg.', 'rossz');
+
+    var helyszin = adat.HELYSZINEK[allapot.helyszin];
+    if (helyszin.akciok.indexOf(tipusId) === -1) {
+      return eredmeny(false, 'Ezt itt nem tudod csinalni.', 'rossz');
+    }
+    if (!CIGI.timesys.belefer(allapot, leiras.percek)) {
+      return eredmeny(false, 'Ehhez ma mar nincs ido.', 'rossz');
+    }
+    if (tipusId === 'futas' && allapot.statok.energia < 25) {
+      return eredmeny(false, 'Ehhez keves az energiad.', 'rossz');
+    }
+
+    var eredm = eredmeny(true, leiras.uzenet, 'jo');
+    var hatasEredmeny = CIGI.stats.alkalmazHatas(allapot, leiras.hatas);
+    CIGI.progress.xpHozzaad(allapot, leiras.xp);
+    eredm.valtozasok = hatasEredmeny.valtozasok;
+    eredm.kovetkezo = idoLeptetes(jatek, leiras.percek) || fejezetEllenorzes(jatek);
+    return lezar(jatek, eredm, elozoSzint);
+  }
+
+  /* ------------------------------ Cigaretta ivet ---------------------------- */
+
+  /**
+   * Ragyujtas inditasa: elokesziti a mini-jatekot.
+   * @returns {{ok:boolean, uzenet:string, miniJatek?:object}}
+   */
+  function cigiIndit(jatek) {
+    var allapot = jatek.allapot;
+    if (foglalt(jatek)) return eredmeny(false, 'Eloszor fejezd be, ami folyamatban van.', 'rossz');
+    if (CIGI.inventory.darab(allapot, 'cigi') <= 0) {
+      return eredmeny(false, 'Nincs nalad egy szal sem.', 'rossz');
+    }
+    if (!CIGI.timesys.belefer(allapot, AKCIO_IDO.cigi)) {
+      return eredmeny(false, 'Ehhez ma mar nincs ido.', 'rossz');
+    }
+
+    jatek.aktivMiniJatek = CIGI.minigame.cigiJatek(jatek.rng, allapot.szint);
+    var eredm = eredmeny(true, '', 'info');
+    eredm.miniJatek = jatek.aktivMiniJatek;
+    return eredm;
+  }
+
+  /**
+   * Ragyujtas lezarasa a mini-jatek eredmenyevel.
+   * @param {number} pozicio a parazs helye kattintaskor (0..100)
+   */
+  function cigiBefejez(jatek, pozicio) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (!jatek.aktivMiniJatek) return eredmeny(false, 'Nincs folyamatban ragyujtas.', 'rossz');
+
+    var minoseg = CIGI.minigame.cigiErtekeles(pozicio, jatek.aktivMiniJatek);
+    jatek.aktivMiniJatek = null;
+
+    var cigi = CIGI.stats.cigiHatasa(allapot, minoseg);
+    var hatasEredmeny = CIGI.stats.alkalmazHatas(allapot, cigi.hatas);
+
+    allapot.statisztika.elszivottCigik += 1;
+    allapot.statisztika.napiCigik += 1;
+    allapot.statisztika.utolsoCigiPerc = allapotModul.abszolutPerc(allapot);
+    if (minoseg === 'tokeletes') allapot.statisztika.tokeletesCigik += 1;
+
+    var eredm = eredmeny(true, cigi.uzenet, minoseg === 'tokeletes' ? 'jo' : 'rossz');
+    eredm.minoseg = minoseg;
+    eredm.valtozasok = hatasEredmeny.valtozasok;
+    eredm.kovetkezo = idoLeptetes(jatek, AKCIO_IDO.cigi) || fejezetEllenorzes(jatek);
+    return lezar(jatek, eredm, elozoSzint);
+  }
+
+  /* --------------------------------- Munka ---------------------------------- */
+
+  /** Az aktualis szinten elerheto munkak. */
+  function elerhetoMunkak(allapot) {
+    return adat.MUNKAK.filter(function (munka) { return allapot.szint >= munka.minSzint; });
+  }
+
+  /** Muszak inditasa: ellenoriz, majd elokesziti a mini-jatek koreit. */
+  function munkaIndit(jatek, munkaId) {
+    var allapot = jatek.allapot;
+    if (foglalt(jatek)) return eredmeny(false, 'Eloszor fejezd be, ami folyamatban van.', 'rossz');
+    if (allapot.helyszin !== 'munka') return eredmeny(false, 'Ehhez a munkahelyre kell menned.', 'rossz');
+
+    var munka = adat.MUNKAK.filter(function (m) { return m.id === munkaId; })[0];
+    if (!munka) return eredmeny(false, 'Ilyen munka nincs.', 'rossz');
+    if (allapot.szint < munka.minSzint) {
+      return eredmeny(false, 'Ehhez ' + munka.minSzint + '. szint kell.', 'rossz');
+    }
+    if (!CIGI.timesys.belefer(allapot, munka.percek)) {
+      return eredmeny(false, 'Ez a muszak mar nem fer bele a napba.', 'rossz');
+    }
+    if (allapot.statok.energia < 15) {
+      return eredmeny(false, 'Tul faradt vagy a muszakhoz.', 'rossz');
+    }
+
+    var korok = [];
+    for (var i = 0; i < CIGI.minigame.KOROK_SZAMA; i++) {
+      korok.push(CIGI.minigame.munkaKor(jatek.rng, allapot.szint));
+    }
+    jatek.aktivMiniJatek = { munka: munka, korok: korok };
+
+    var eredm = eredmeny(true, '', 'info');
+    eredm.miniJatek = jatek.aktivMiniJatek;
+    return eredm;
+  }
+
+  /**
+   * Muszak lezarasa.
+   * @param {number} talalatok sikeres korok szama
+   */
+  function munkaBefejez(jatek, talalatok) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (!jatek.aktivMiniJatek || !jatek.aktivMiniJatek.munka) {
+      return eredmeny(false, 'Nincs folyamatban muszak.', 'rossz');
+    }
+
+    var munka = jatek.aktivMiniJatek.munka;
+    var korokSzama = jatek.aktivMiniJatek.korok.length;
+    jatek.aktivMiniJatek = null;
+
+    var szorzo = CIGI.minigame.munkaSzorzo(talalatok, korokSzama);
+    var ber = CIGI.minigame.munkaBer(munka, szorzo);
+
+    var hatasEredmeny = CIGI.stats.alkalmazHatas(allapot, {
+      penz: ber,
+      statok: munka.hatas,
+      xp: Math.round(munka.xp * szorzo)
+    });
+    allapot.statisztika.munkaSzamlalo += 1;
+
+    var eredm = eredmeny(true,
+      munka.nev + ': ' + talalatok + '/' + korokSzama + ' - ' + utils.penzFormatum(ber) + ' (' + szorzo + 'x)',
+      'jo');
+    eredm.valtozasok = hatasEredmeny.valtozasok;
+    eredm.ber = ber;
+    eredm.szorzo = szorzo;
+    eredm.kovetkezo = idoLeptetes(jatek, munka.percek) || fejezetEllenorzes(jatek);
+    return lezar(jatek, eredm, elozoSzint);
+  }
+
+  /* ------------------------------ Bolt, targyak ----------------------------- */
+
+  function vasarlas(jatek, targyId) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (allapot.vege) return eredmeny(false, 'A jateknak vege.', 'rossz');
+
+    var valasz = CIGI.inventory.vasarol(allapot, targyId, allapot.helyszin);
+    return lezar(jatek, eredmeny(valasz.ok, valasz.uzenet, valasz.ok ? 'jo' : 'rossz'), elozoSzint);
+  }
+
+  function targyHasznalat(jatek, targyId) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (allapot.vege) return eredmeny(false, 'A jateknak vege.', 'rossz');
+
+    var valasz = CIGI.inventory.hasznal(allapot, targyId);
+    var eredm = eredmeny(valasz.ok, valasz.uzenet, valasz.ok ? 'jo' : 'rossz');
+    eredm.valtozasok = valasz.valtozasok || [];
+    return lezar(jatek, eredm, elozoSzint);
+  }
+
+  /* ------------------------- Esemeny- es sztorivalasz ----------------------- */
+
+  function esemenyValasz(jatek, valasztasIndex) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (!jatek.fuggoEsemeny) return eredmeny(false, 'Nincs fuggoben levo esemeny.', 'rossz');
+
+    var esemeny = jatek.fuggoEsemeny;
+    jatek.fuggoEsemeny = null;
+    var valasz = CIGI.events.valasztFeloldas(allapot, esemeny, valasztasIndex);
+    if (!valasz.ok) {
+      jatek.fuggoEsemeny = esemeny;   // ervenytelen valasztas: maradjon nyitva
+      return eredmeny(false, valasz.uzenet, 'rossz');
+    }
+
+    var eredm = eredmeny(true, valasz.uzenet, 'info');
+    eredm.valtozasok = valasz.valtozasok;
+    eredm.kovetkezo = (valasz.ido > 0 ? idoLeptetes(jatek, valasz.ido) : null) || fejezetEllenorzes(jatek);
+    return lezar(jatek, eredm, elozoSzint);
+  }
+
+  function storyValasz(jatek, valasztasIndex) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+    if (!jatek.fuggoFejezet) return eredmeny(false, 'Nincs fuggoben levo fejezet.', 'rossz');
+
+    var fejezet = jatek.fuggoFejezet;
+    jatek.fuggoFejezet = null;
+    var valasz = CIGI.story.fejezetValasztas(allapot, fejezet, valasztasIndex);
+    if (!valasz.ok) {
+      jatek.fuggoFejezet = fejezet;
+      return eredmeny(false, valasz.uzenet, 'rossz');
+    }
+
+    var eredm = eredmeny(true, valasz.uzenet, 'info');
+    eredm.valtozasok = valasz.valtozasok;
+    eredm.kovetkezo = valasz.ido > 0 ? idoLeptetes(jatek, valasz.ido) : null;
+    return lezar(jatek, eredm, elozoSzint);
+  }
+
+  /* -------------------------------- Nap vege -------------------------------- */
+
+  /**
+   * Nap lezarasa (lefekves): a hatralevo idot elugratja, majd elszamol.
+   * Barmikor hivhato - ez a kiut abbol, ha a nap vegen mar semmi nem fer bele.
+   * @returns {object} osszegzo a nap vege kepernyohoz
+   */
+  function napZaras(jatek) {
+    var allapot = jatek.allapot;
+    var elozoSzint = allapot.szint;
+
+    // A meg hatralevo ido eltelik (esemeny nelkul - a nap mar veget er).
+    var hatralevo = CIGI.timesys.hatralevoPercek(allapot);
+    if (hatralevo > 0) CIGI.timesys.idotLeptet(allapot, hatralevo);
+
+    var kritikus = CIGI.stats.kritikusAllapot(allapot);
+    if (!kritikus.ok && kritikus.tipus === 'korhaz') {
+      allapot.vege = CIGI.story.befejezes(allapot, 'korhaz');
+      var korhaziEredmeny = eredmeny(true, kritikus.szoveg, 'rossz');
+      korhaziEredmeny.kovetkezo = { tipus: 'vege', befejezes: allapot.vege };
+      return lezar(jatek, korhaziEredmeny, elozoSzint);
+    }
+
+    var napiCigik = allapot.statisztika.napiCigik;
+    var napiXp = 40 + (napiCigik === 0 ? 60 : 0);
+    CIGI.progress.xpHozzaad(allapot, napiXp);
+
+    var elszamolas = CIGI.stats.napiElszamolas(allapot);
+    var utolsoNap = allapot.nap >= adat.BEALLITAS.UTOLSO_NAP;
+
+    var osszegzo = {
+      nap: allapot.nap,
+      napiCigik: napiCigik,
+      cigimentes: elszamolas.cigimentes,
+      penz: allapot.penz,
+      statok: utils.masolat(allapot.statok),
+      fuggosegValtozas: elszamolas.fuggosegValtozas,
+      napiXp: napiXp,
+      pontszam: allapot.pontszam,
+      utolsoNap: utolsoNap
+    };
+
+    var eredm = eredmeny(true, allapot.nap + '. nap vege.', 'info');
+    eredm.osszegzo = osszegzo;
+    lezar(jatek, eredm, elozoSzint);
+
+    if (utolsoNap) {
+      allapot.vege = CIGI.story.befejezes(allapot, null);
+      if (allapot.vege.jutalom > 0) {
+        CIGI.stats.alkalmazHatas(allapot, { penz: allapot.vege.jutalom });
+        // A jutalom meg feloldhat penzhez kotott achievementet.
+        eredm.ujAchievementek = eredm.ujAchievementek.concat(
+          CIGI.progress.achievementEllenorzes(allapot));
+      }
+      eredm.kovetkezo = { tipus: 'vege', befejezes: allapot.vege };
+    }
+
+    return eredm;
+  }
+
+  /** Atlepes a kovetkezo napra (a nap vege kepernyo utan). */
+  function ujNap(jatek) {
+    var allapot = jatek.allapot;
+    if (allapot.vege) return eredmeny(false, 'A jateknak vege.', 'rossz');
+
+    var lepes = CIGI.timesys.kovetkezoNap(allapot);
+    if (lepes.utolsoNapVolt) return eredmeny(false, 'Ez volt az utolso nap.', 'rossz');
+
+    jatek.fuggoEsemeny = null;
+    jatek.aktivMiniJatek = null;
+    jatek.utolsoEsemenyId = null;
+
+    var eredm = eredmeny(true, allapot.nap + '. nap - felebredtel.', 'info');
+    eredm.kovetkezo = fejezetEllenorzes(jatek);
+    return lezar(jatek, eredm, allapot.szint);
+  }
+
+  CIGI.game = {
+    AKCIO_IDO: AKCIO_IDO,
+    createJatek: createJatek,
+    foglalt: foglalt,
+    mozgas: mozgas,
+    tevekenyseg: tevekenyseg,
+    cigiIndit: cigiIndit,
+    cigiBefejez: cigiBefejez,
+    elerhetoMunkak: elerhetoMunkak,
+    munkaIndit: munkaIndit,
+    munkaBefejez: munkaBefejez,
+    vasarlas: vasarlas,
+    targyHasznalat: targyHasznalat,
+    esemenyValasz: esemenyValasz,
+    storyValasz: storyValasz,
+    napZaras: napZaras,
+    ujNap: ujNap,
+    fejezetEllenorzes: fejezetEllenorzes
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = CIGI.game;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* Megjelenites: DOM-epites, modalok, piritosok, mini-jatek animacio. */
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI = globalThis.CIGI || {};
+  var utils = CIGI.utils;
+  var adat = CIGI.data;
+
+  var MAX_PIRIT = 2;       // egyszerre lathato visszajelzesek
+  var MAX_VALTOZAS = 5;    // egy piritoson mutatott stat-cimkek
+
+  var kezelok = {};        // main.js tolti fel
+  var modalAllapot = { bezarhato: true, bezarasKor: null };
+  var futoMiniJatek = null;
+
+  /* ------------------------------ DOM segedek ------------------------------ */
+
+  function e(id) { return document.getElementById(id); }
+
+  /** Elem letrehozasa egy lepesben. A szoveg mindig textContent - nincs HTML-injektalas. */
+  function ujElem(tag, osztaly, szoveg) {
+    var elem = document.createElement(tag);
+    if (osztaly) elem.className = osztaly;
+    if (szoveg !== undefined && szoveg !== null) elem.textContent = String(szoveg);
+    return elem;
+  }
+
+  function urit(elem) {
+    while (elem.firstChild) elem.removeChild(elem.firstChild);
+    return elem;
+  }
+
+  /** Stat erteke szerinti csik-osztaly. A cigivagynal forditott a logika. */
+  function csikOsztaly(ertek, forditott) {
+    var jo = forditott ? ertek <= 35 : ertek >= 60;
+    var kozep = forditott ? ertek <= 70 : ertek >= 30;
+    if (jo) return 'csik-kitolt csik-jo';
+    if (kozep) return 'csik-kitolt csik-kozep';
+    return 'csik-kitolt csik-rossz';
+  }
+
+  /* -------------------------------- Piritos -------------------------------- */
+
+  /**
+   * Rovid visszajelzes a keperno aljan.
+   * @param {Array} [valtozasok] stat-valtozas cimkek
+   */
+  function pirit(uzenet, tipus, valtozasok) {
+    if (!uzenet && (!valtozasok || valtozasok.length === 0)) return;
+
+    var doboz = ujElem('div', 'pirit ' + (tipus || 'info'));
+    if (uzenet) doboz.appendChild(ujElem('div', null, uzenet));
+
+    if (valtozasok && valtozasok.length) {
+      var sor = ujElem('div', 'valtozas-sor');
+      var lathatok = valtozasok.slice(0, MAX_VALTOZAS);
+      lathatok.forEach(function (valtozas) {
+        var szoveg = valtozas.penz
+          ? (valtozas.delta > 0 ? '+' : '') + utils.penzFormatum(valtozas.delta)
+          : valtozas.cimke + ' ' + (valtozas.delta > 0 ? '+' : '') + utils.kerekit(valtozas.delta, 1);
+        sor.appendChild(ujElem('span', 'valtozas ' + (valtozas.jo ? 'jo' : 'rossz'), szoveg));
+      });
+      if (valtozasok.length > lathatok.length) {
+        sor.appendChild(ujElem('span', 'valtozas', '+' + (valtozasok.length - lathatok.length) + ' tovabbi'));
+      }
+      doboz.appendChild(sor);
+    }
+
+    var sav = e('pirit-sor');
+    // A regi piritosok kiszorulnak, hogy ne toltsek meg a kepernyot.
+    while (sav.children.length >= MAX_PIRIT) sav.removeChild(sav.firstChild);
+    sav.appendChild(doboz);
+    globalThis.setTimeout(function () {
+      if (doboz.parentNode) doboz.parentNode.removeChild(doboz);
+    }, 2400);
+  }
+
+  /* --------------------------------- Modal --------------------------------- */
+
+  /**
+   * @param {{cim:string, ikon?:string, torzs?:Node|string, gombok?:Array, bezarhato?:boolean,
+   *          bezarasKor?:function}} beallitas
+   */
+  function modalNyit(beallitas) {
+    var torzs = urit(e('modal-torzs'));
+    var lab = urit(e('modal-lab'));
+
+    e('modal-cim').textContent = beallitas.cim || '';
+
+    if (beallitas.ikon) torzs.appendChild(ujElem('div', 'modal-ikon', beallitas.ikon));
+
+    if (typeof beallitas.torzs === 'string') {
+      torzs.appendChild(ujElem('p', 'modal-szoveg', beallitas.torzs));
+    } else if (beallitas.torzs) {
+      torzs.appendChild(beallitas.torzs);
+    }
+
+    (beallitas.gombok || []).forEach(function (leiras) {
+      var gomb = ujElem('button', 'gomb ' + (leiras.tipus || 'gomb-mellek'), leiras.szoveg);
+      gomb.addEventListener('click', function () {
+        if (leiras.muvelet) leiras.muvelet();
+      });
+      lab.appendChild(gomb);
+    });
+
+    modalAllapot.bezarhato = beallitas.bezarhato !== false;
+    modalAllapot.bezarasKor = beallitas.bezarasKor || null;
+    e('modal-bezar').hidden = !modalAllapot.bezarhato;
+    e('modal-reteg').hidden = false;
+  }
+
+  function modalZar() {
+    if (e('modal-reteg').hidden) return;
+    e('modal-reteg').hidden = true;
+    var visszahivas = modalAllapot.bezarasKor;
+    modalAllapot.bezarasKor = null;
+    if (visszahivas) visszahivas();
+  }
+
+  function modalNyitva() { return !e('modal-reteg').hidden; }
+
+  /* ------------------------------ Fo renderelo ----------------------------- */
+
+  var STAT_LEIRAS = [
+    { kulcs: 'tudo', nev: 'TUDO', ikon: '🫁', forditott: false },
+    { kulcs: 'energia', nev: 'ENERGIA', ikon: '⚡', forditott: false },
+    { kulcs: 'hangulat', nev: 'HANGULAT', ikon: '😊', forditott: false },
+    { kulcs: 'fuggoseg', nev: 'FUGGOSEG', ikon: '🧠', forditott: true }
+  ];
+
+  function statokRender(allapot) {
+    var tarolo = urit(e('statok'));
+
+    STAT_LEIRAS.forEach(function (leiras) {
+      var ertek = allapot.statok[leiras.kulcs];
+      var kartya = ujElem('div', 'stat-kartya');
+      var veszelyes = leiras.forditott ? ertek >= 75 : ertek <= 20;
+      if (veszelyes) kartya.classList.add('veszely');
+
+      var fej = ujElem('div', 'stat-fej');
+      fej.appendChild(ujElem('span', 'stat-nev', leiras.ikon + ' ' + leiras.nev));
+      fej.appendChild(ujElem('span', 'stat-ertek', Math.round(ertek) + '%'));
+      kartya.appendChild(fej);
+
+      var csik = ujElem('div', 'csik');
+      var kitolt = ujElem('div', csikOsztaly(ertek, leiras.forditott));
+      kitolt.style.width = utils.korlat(ertek, 0, 100) + '%';
+      csik.appendChild(kitolt);
+      kartya.appendChild(csik);
+
+      tarolo.appendChild(kartya);
+    });
+  }
+
+  function akciokRender(allapot) {
+    var tarolo = urit(e('akciok'));
+    var helyszin = adat.HELYSZINEK[allapot.helyszin];
+    var hatralevo = CIGI.timesys.hatralevoPercek(allapot);
+
+    var leirasok = {
+      pihenes: { cim: '😌 Pihenes', percek: 30, koltseg: '30 perc - energia es nyugalom', akcio: function () { kezelok.tevekenyseg('pihenes'); } },
+      seta: { cim: '🚶 Seta', percek: 20, koltseg: '20 perc - csokkenti a cigivagyat', akcio: function () { kezelok.tevekenyseg('seta'); } },
+      futas: { cim: '🏃 Futas', percek: 40, koltseg: '40 perc - tudo es hangulat', minEnergia: 25, akcio: function () { kezelok.tevekenyseg('futas'); } },
+      alvas: { cim: '🛏️ Lefekves', percek: 0, koltseg: 'A nap lezarasa', akcio: function () { kezelok.napZaras(); } },
+      bolt: { cim: '🏪 Vasarlas', percek: 0, koltseg: 'Nezd meg a kinalatot', akcio: function () { kezelok.boltNyit(); } },
+      munka: { cim: '💼 Muszak', percek: 0, koltseg: 'Penzkereses mini-jatekkal', akcio: function () { kezelok.munkaNyit(); } }
+    };
+
+    helyszin.akciok.forEach(function (akcioId) {
+      var leiras = leirasok[akcioId];
+      if (!leiras) return;
+
+      // A vegrehajthatatlan akcio inkabb legyen tiltva, mint hibauzenetet ado.
+      var nincsIdo = leiras.percek > 0 && hatralevo < leiras.percek;
+      var nincsEro = leiras.minEnergia !== undefined && allapot.statok.energia < leiras.minEnergia;
+
+      var gomb = ujElem('button', 'gomb akcio-gomb');
+      gomb.disabled = nincsIdo || nincsEro;
+      gomb.appendChild(ujElem('span', 'akcio-cim', leiras.cim));
+      gomb.appendChild(ujElem('span', 'akcio-koltseg',
+        nincsIdo ? 'Ma mar nem fer bele' : nincsEro ? 'Ehhez keves az energiad' : leiras.koltseg));
+      gomb.addEventListener('click', leiras.akcio);
+      tarolo.appendChild(gomb);
+    });
+
+    // Kiut a nap vegen: ha mar semmi nem fer bele, a lefekves barhonnan elerheto.
+    if (hatralevo <= 30 && helyszin.akciok.indexOf('alvas') === -1) {
+      var zaroGomb = ujElem('button', 'gomb gomb-fo akcio-gomb');
+      zaroGomb.appendChild(ujElem('span', 'akcio-cim', '🛏️ Nap lezarasa'));
+      zaroGomb.appendChild(ujElem('span', 'akcio-koltseg', 'Mara ennyi fert bele'));
+      zaroGomb.addEventListener('click', function () { kezelok.napZaras(); });
+      tarolo.appendChild(zaroGomb);
+    }
+  }
+
+  /** A teljes jatekkeperno frissitese az allapotbol. */
+  function render(allapot) {
+    var napszak = CIGI.timesys.napszak(allapot.ido);
+
+    e('hud-nap').textContent = 'NAP ' + allapot.nap + '/' + adat.BEALLITAS.UTOLSO_NAP;
+    e('hud-ido').textContent = napszak.ikon + ' ' + utils.oraFormatum(allapot.ido);
+    e('hud-pont').textContent = '⭐ ' + allapot.pontszam;
+
+    statokRender(allapot);
+
+    var helyszin = adat.HELYSZINEK[allapot.helyszin];
+    e('helyszin-ikon').textContent = helyszin.ikon;
+    e('helyszin-nev').textContent = helyszin.nev;
+    e('helyszin-leiras').textContent = helyszin.leiras;
+
+    var craving = allapot.statok.craving;
+    var cravingCsik = e('craving-csik');
+    cravingCsik.style.width = utils.korlat(craving, 0, 100) + '%';
+    e('craving-ertek').textContent = Math.round(craving) + '%' + (craving >= 80 ? ' - ELVISELHETETLEN' : '');
+    e('cigi-vizual').classList.toggle('eros', craving >= 70);
+
+    var szalak = CIGI.inventory.darab(allapot, 'cigi');
+    e('cigi-keszlet').textContent = szalak > 0 ? szalak + ' szal a zsebedben' : 'Nincs nalad egy szal sem';
+    e('gomb-cigi').disabled = szalak <= 0;
+
+    akciokRender(allapot);
+
+    e('also-penz').textContent = utils.penzFormatum(allapot.penz);
+    e('also-cigi').textContent = String(szalak);
+    e('also-szint').textContent = 'LVL ' + allapot.szint;
+    e('xp-csik').style.width = CIGI.progress.szintSzazalek(allapot) + '%';
+  }
+
+  /* ------------------------------ Modal torzsek ---------------------------- */
+
+  function boltTorzs(allapot) {
+    var tarolo = ujElem('div', 'lista');
+    var kinalat = CIGI.inventory.boltiKinalat(allapot, allapot.helyszin);
+
+    if (kinalat.length === 0) {
+      tarolo.appendChild(ujElem('p', 'modal-szoveg', 'Itt most nincs semmi eladó.'));
+      return tarolo;
+    }
+
+    kinalat.forEach(function (targy) {
+      var gomb = ujElem('button', 'tetel');
+      gomb.disabled = allapot.penz < targy.ar;
+
+      gomb.appendChild(ujElem('span', 'tetel-ikon', targy.ikon));
+      var torzs = ujElem('div', 'tetel-torzs');
+      torzs.appendChild(ujElem('div', 'tetel-nev', targy.nev));
+      torzs.appendChild(ujElem('div', 'tetel-leiras', targy.leiras));
+      gomb.appendChild(torzs);
+      gomb.appendChild(ujElem('span', 'tetel-jobb', utils.penzFormatum(targy.ar)));
+
+      gomb.addEventListener('click', function () { kezelok.vasarlas(targy.id); });
+      tarolo.appendChild(gomb);
+    });
+
+    return tarolo;
+  }
+
+  function inventoryTorzs(allapot) {
+    var tarolo = ujElem('div');
+    var tetelek = CIGI.inventory.lista(allapot);
+
+    if (tetelek.length === 0) {
+      tarolo.appendChild(ujElem('p', 'modal-szoveg', 'Ures a taskad.'));
+      return tarolo;
+    }
+
+    var racs = ujElem('div', 'racs');
+    tetelek.forEach(function (bejegyzes) {
+      var gomb = ujElem('button', 'rekesz');
+      gomb.disabled = !bejegyzes.targy.hasznalhato;
+      gomb.title = bejegyzes.targy.leiras;
+      gomb.appendChild(ujElem('div', 'rekesz-ikon', bejegyzes.targy.ikon));
+      gomb.appendChild(ujElem('div', 'rekesz-nev', bejegyzes.targy.nev));
+      gomb.appendChild(ujElem('div', 'rekesz-db', 'x' + bejegyzes.db));
+      gomb.addEventListener('click', function () { kezelok.targyHasznalat(bejegyzes.targy.id); });
+      racs.appendChild(gomb);
+    });
+
+    tarolo.appendChild(racs);
+    tarolo.appendChild(ujElem('p', 'modal-szoveg', 'Kattints egy targyra a hasznalatahoz.'));
+    return tarolo;
+  }
+
+  function terkepTorzs(allapot) {
+    var tarolo = ujElem('div', 'lista');
+    var jelenlegi = adat.HELYSZINEK[allapot.helyszin];
+
+    Object.keys(adat.HELYSZINEK).forEach(function (id) {
+      var helyszin = adat.HELYSZINEK[id];
+      var itt = id === allapot.helyszin;
+      var szomszed = jelenlegi.szomszedok.indexOf(id) !== -1;
+      var zarolt = allapot.szint < (helyszin.minSzint || 1);
+
+      var gomb = ujElem('button', 'tetel' + (zarolt ? ' zarolt' : ''));
+      gomb.disabled = itt || !szomszed || zarolt;
+
+      gomb.appendChild(ujElem('span', 'tetel-ikon', zarolt ? '🔒' : helyszin.ikon));
+      var torzs = ujElem('div', 'tetel-torzs');
+      torzs.appendChild(ujElem('div', 'tetel-nev', helyszin.nev));
+      torzs.appendChild(ujElem('div', 'tetel-leiras',
+        zarolt ? helyszin.minSzint + '. szinttol nyilik meg'
+          : itt ? 'Most itt vagy'
+            : szomszed ? adat.BEALLITAS.MOZGAS_PERC + ' perc ut' : 'Innen nem erhető el kozvetlenul'));
+      gomb.appendChild(torzs);
+
+      gomb.addEventListener('click', function () { kezelok.mozgas(id); });
+      tarolo.appendChild(gomb);
+    });
+
+    return tarolo;
+  }
+
+  function munkaTorzs(allapot) {
+    var tarolo = ujElem('div', 'lista');
+
+    adat.MUNKAK.forEach(function (munka) {
+      var zarolt = allapot.szint < munka.minSzint;
+      var gomb = ujElem('button', 'tetel' + (zarolt ? ' zarolt' : ''));
+      gomb.disabled = zarolt || !CIGI.timesys.belefer(allapot, munka.percek);
+
+      gomb.appendChild(ujElem('span', 'tetel-ikon', zarolt ? '🔒' : munka.ikon));
+      var torzs = ujElem('div', 'tetel-torzs');
+      torzs.appendChild(ujElem('div', 'tetel-nev', munka.nev));
+      torzs.appendChild(ujElem('div', 'tetel-leiras',
+        zarolt ? munka.minSzint + '. szinttol' : (munka.percek / 60) + ' ora muszak'));
+      gomb.appendChild(torzs);
+      gomb.appendChild(ujElem('span', 'tetel-jobb', '~' + utils.penzFormatum(munka.alapber)));
+
+      gomb.addEventListener('click', function () { kezelok.munkaIndit(munka.id); });
+      tarolo.appendChild(gomb);
+    });
+
+    return tarolo;
+  }
+
+  function achievementTorzs(allapot) {
+    var tarolo = ujElem('div', 'lista');
+    CIGI.progress.achievementLista(allapot).forEach(function (ach) {
+      var sor = ujElem('div', 'tetel' + (ach.feloldva ? ' feloldva' : ' zarolt'));
+      sor.appendChild(ujElem('span', 'tetel-ikon', ach.feloldva ? ach.ikon : '🔒'));
+      var torzs = ujElem('div', 'tetel-torzs');
+      torzs.appendChild(ujElem('div', 'tetel-nev', ach.nev));
+      torzs.appendChild(ujElem('div', 'tetel-leiras', ach.leiras));
+      sor.appendChild(torzs);
+      tarolo.appendChild(sor);
+    });
+    return tarolo;
+  }
+
+  function naploTorzs(allapot) {
+    var tarolo = ujElem('div', 'lista');
+    if (allapot.naplo.length === 0) {
+      tarolo.appendChild(ujElem('p', 'modal-szoveg', 'Meg nem tortent semmi.'));
+      return tarolo;
+    }
+    allapot.naplo.forEach(function (bejegyzes) {
+      var sor = ujElem('div', 'naplo-sor ' + bejegyzes.tipus);
+      sor.appendChild(ujElem('span', 'naplo-ido', bejegyzes.nap + '. nap ' + bejegyzes.ido));
+      sor.appendChild(ujElem('span', null, bejegyzes.szoveg));
+      tarolo.appendChild(sor);
+    });
+    return tarolo;
+  }
+
+  /** Nap vegi osszegzo tabla. */
+  function napVegeTorzs(osszegzo) {
+    var tarolo = ujElem('div', 'osszegzo');
+
+    function sor(cimke, ertek, osztaly) {
+      var elem = ujElem('div', 'osszegzo-sor');
+      elem.appendChild(ujElem('span', null, cimke));
+      elem.appendChild(ujElem('strong', osztaly || 'semleges-ertek', ertek));
+      tarolo.appendChild(elem);
+    }
+
+    sor('🚬 Elszivott cigi ma', osszegzo.napiCigik + ' db',
+      osszegzo.napiCigik === 0 ? 'jo-ertek' : 'rossz-ertek');
+    sor('💰 Penz', utils.penzFormatum(osszegzo.penz));
+    sor('🫁 Tudo', Math.round(osszegzo.statok.tudo) + '%');
+    sor('⚡ Energia', Math.round(osszegzo.statok.energia) + '%');
+    sor('😊 Hangulat', Math.round(osszegzo.statok.hangulat) + '%');
+    sor('🧠 Fuggoseg', Math.round(osszegzo.statok.fuggoseg) + '%' +
+      (osszegzo.fuggosegValtozas ? ' (' + osszegzo.fuggosegValtozas + ')' : ''),
+      osszegzo.fuggosegValtozas < 0 ? 'jo-ertek' : 'semleges-ertek');
+    sor('⭐ Napi XP', '+' + osszegzo.napiXp, 'jo-ertek');
+
+    var dij = ujElem('div', 'dij', osszegzo.cigimentes
+      ? 'CIGIMENTES NAP - bonusz XP es fuggosegcsokkenes'
+      : 'Volt cigi ma. A sorozat nullazodott.');
+    tarolo.appendChild(dij);
+
+    return tarolo;
+  }
+
+  function befejezesTorzs(allapot, befejezes) {
+    var tarolo = ujElem('div', 'osszegzo');
+    tarolo.appendChild(ujElem('p', 'modal-szoveg', befejezes.szoveg));
+
+    function sor(cimke, ertek) {
+      var elem = ujElem('div', 'osszegzo-sor');
+      elem.appendChild(ujElem('span', null, cimke));
+      elem.appendChild(ujElem('strong', 'semleges-ertek', ertek));
+      tarolo.appendChild(elem);
+    }
+
+    sor('📅 Napok', allapot.nap + ' nap');
+    sor('🚬 Osszes elszivott cigi', allapot.statisztika.elszivottCigik + ' db');
+    sor('🫁 Cigimentes napok', allapot.statisztika.cigimentesNapok + ' nap');
+    sor('💼 Muszakok', allapot.statisztika.munkaSzamlalo + ' db');
+    sor('💰 Vegso vagyon', utils.penzFormatum(allapot.penz));
+    sor('⭐ Pontszam', String(allapot.pontszam));
+    sor('🏆 Achievementek', allapot.achievementek.length + ' / ' + adat.ACHIEVEMENTEK.length);
+
+    if (befejezes.jutalom > 0) {
+      tarolo.appendChild(ujElem('div', 'dij', 'JUTALOM: ' + utils.penzFormatum(befejezes.jutalom)));
+    }
+
+    return tarolo;
+  }
+
+  /** Esemeny- es sztori-valasztasok gombjai. */
+  function valasztasGombok(valasztasok, visszahivas) {
+    return valasztasok.map(function (valasztas, index) {
+      return {
+        szoveg: valasztas.szoveg,
+        tipus: index === 0 ? 'gomb-fo' : 'gomb-mellek',
+        muvelet: function () { visszahivas(index); }
+      };
+    });
+  }
+
+  /* ------------------------------ Mini-jatek ------------------------------- */
+
+  function miniLeallit() {
+    if (!futoMiniJatek) return;
+    globalThis.cancelAnimationFrame(futoMiniJatek.keret);
+    document.removeEventListener('keydown', futoMiniJatek.billentyu);
+    futoMiniJatek = null;
+    e('minijatek-reteg').hidden = true;
+  }
+
+  /** A celzona kirajzolasa a savon. */
+  function zonaRajz(kor) {
+    var zona = e('mini-zona');
+    zona.style.left = kor.zonaKezdet + '%';
+    zona.style.width = (kor.zonaVeg - kor.zonaKezdet) + '%';
+  }
+
+  function korPontokRajz(osszes, eredmenyek, aktivIndex) {
+    var tarolo = urit(e('mini-korok'));
+    for (var i = 0; i < osszes; i++) {
+      var osztaly = 'kor-pont';
+      if (eredmenyek[i] === true) osztaly += ' talalat';
+      else if (eredmenyek[i] === false) osztaly += ' hiba';
+      else if (i === aktivIndex) osztaly += ' aktiv';
+      tarolo.appendChild(ujElem('div', osztaly));
+    }
+  }
+
+  /**
+   * Cigi mini-jatek: a parazs egyszer fut vegig. Ha a jatekos nem all meg,
+   * a szal leeg (100-as pozicio).
+   */
+  function cigiMiniJatek(miniJatek, keszVisszahivas) {
+    miniLeallit();
+    e('mini-cim').textContent = '🔥 A parazs halad';
+    e('mini-leiras').textContent = 'Allitsd meg a narancs zonaban - ott a legjobb az idozites.';
+    zonaRajz(miniJatek);
+    korPontokRajz(0, [], -1);
+    e('minijatek-reteg').hidden = false;
+
+    var pozicio = 0;
+    var utolsoIdo = null;
+    var lezarva = false;
+
+    function lezar(vegsoPozicio) {
+      if (lezarva) return;
+      lezarva = true;
+      miniLeallit();
+      keszVisszahivas(vegsoPozicio);
+    }
+
+    function keret(mostIdo) {
+      if (utolsoIdo === null) utolsoIdo = mostIdo;
+      var deltaMasodperc = (mostIdo - utolsoIdo) / 1000;
+      utolsoIdo = mostIdo;
+
+      pozicio += miniJatek.sebesseg * deltaMasodperc;
+      if (pozicio >= miniJatek.hossz) {
+        e('mini-jelolo').style.left = '100%';
+        lezar(miniJatek.hossz);
+        return;
+      }
+      e('mini-jelolo').style.left = pozicio + '%';
+      futoMiniJatek.keret = globalThis.requestAnimationFrame(keret);
+    }
+
+    function megallit() { lezar(pozicio); }
+
+    function billentyu(esemeny) {
+      if (esemeny.code === 'Space' || esemeny.key === ' ' || esemeny.key === 'Enter') {
+        esemeny.preventDefault();
+        megallit();
+      }
+    }
+
+    futoMiniJatek = { keret: 0, billentyu: billentyu, megallit: megallit };
+    document.addEventListener('keydown', billentyu);
+    futoMiniJatek.keret = globalThis.requestAnimationFrame(keret);
+  }
+
+  /**
+   * Munka mini-jatek: tobb kor, oda-vissza mozgo jelolovel.
+   */
+  function munkaMiniJatek(korok, keszVisszahivas) {
+    miniLeallit();
+    e('mini-cim').textContent = '💼 Muszak';
+    e('mini-leiras').textContent = 'Harom kor. Minden talalat noveli a fizetesedet.';
+    e('minijatek-reteg').hidden = false;
+
+    var eredmenyek = [];
+    var korIndex = 0;
+    var pozicio = 0;
+    var irany = 1;
+    var utolsoIdo = null;
+    var lezarva = false;
+
+    function lezar() {
+      if (lezarva) return;
+      lezarva = true;
+      var talalatok = eredmenyek.filter(function (x) { return x === true; }).length;
+      miniLeallit();
+      keszVisszahivas(talalatok);
+    }
+
+    function korIndit() {
+      pozicio = 0;
+      irany = 1;
+      utolsoIdo = null;
+      zonaRajz(korok[korIndex]);
+      korPontokRajz(korok.length, eredmenyek, korIndex);
+    }
+
+    function keret(mostIdo) {
+      if (utolsoIdo === null) utolsoIdo = mostIdo;
+      var deltaMasodperc = (mostIdo - utolsoIdo) / 1000;
+      utolsoIdo = mostIdo;
+
+      var kor = korok[korIndex];
+      pozicio += kor.sebesseg * deltaMasodperc * irany;
+      if (pozicio >= kor.hossz) { pozicio = kor.hossz; irany = -1; }
+      if (pozicio <= 0) { pozicio = 0; irany = 1; }
+
+      e('mini-jelolo').style.left = pozicio + '%';
+      futoMiniJatek.keret = globalThis.requestAnimationFrame(keret);
+    }
+
+    function megallit() {
+      if (lezarva || korIndex >= korok.length) return;
+      eredmenyek[korIndex] = CIGI.minigame.munkaTalalat(pozicio, korok[korIndex]);
+      korPontokRajz(korok.length, eredmenyek, -1);
+      korIndex += 1;
+
+      if (korIndex >= korok.length) {
+        globalThis.setTimeout(lezar, 350);
+        globalThis.cancelAnimationFrame(futoMiniJatek.keret);
+        return;
+      }
+      korIndit();
+    }
+
+    function billentyu(esemeny) {
+      if (esemeny.code === 'Space' || esemeny.key === ' ' || esemeny.key === 'Enter') {
+        esemeny.preventDefault();
+        megallit();
+      }
+    }
+
+    futoMiniJatek = { keret: 0, billentyu: billentyu, megallit: megallit };
+    document.addEventListener('keydown', billentyu);
+    korIndit();
+    futoMiniJatek.keret = globalThis.requestAnimationFrame(keret);
+  }
+
+  function miniMegallit() {
+    if (futoMiniJatek) futoMiniJatek.megallit();
+  }
+
+  /* --------------------------------- Init ---------------------------------- */
+
+  /** A main.js itt adja at a kezelofuggvenyeket es koti be a fix gombokat. */
+  function init(ujKezelok) {
+    kezelok = ujKezelok || {};
+
+    e('modal-bezar').addEventListener('click', function () {
+      if (modalAllapot.bezarhato) modalZar();
+    });
+
+    e('modal-reteg').addEventListener('click', function (esemeny) {
+      if (esemeny.target === e('modal-reteg') && modalAllapot.bezarhato) modalZar();
+    });
+
+    document.addEventListener('keydown', function (esemeny) {
+      if (esemeny.key === 'Escape' && modalNyitva() && modalAllapot.bezarhato) modalZar();
+    });
+
+    e('mini-sav').addEventListener('click', miniMegallit);
+    e('gomb-mini-stop').addEventListener('click', miniMegallit);
+  }
+
+  CIGI.ui = {
+    e: e,
+    ujElem: ujElem,
+    urit: urit,
+    init: init,
+    render: render,
+    pirit: pirit,
+    modalNyit: modalNyit,
+    modalZar: modalZar,
+    modalNyitva: modalNyitva,
+    boltTorzs: boltTorzs,
+    inventoryTorzs: inventoryTorzs,
+    terkepTorzs: terkepTorzs,
+    munkaTorzs: munkaTorzs,
+    achievementTorzs: achievementTorzs,
+    naploTorzs: naploTorzs,
+    napVegeTorzs: napVegeTorzs,
+    befejezesTorzs: befejezesTorzs,
+    valasztasGombok: valasztasGombok,
+    cigiMiniJatek: cigiMiniJatek,
+    munkaMiniJatek: munkaMiniJatek,
+    miniLeallit: miniLeallit
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>
+/* Bootstrap: allapot, esemenykezelok, kepernyo-atmenetek. */
+(function (globalThis) {
+  'use strict';
+
+  var CIGI = globalThis.CIGI;
+  var ui = CIGI.ui;
+  var jatekModul = CIGI.game;
+
+  var jatek = null;   // { allapot, rng, ... }
+
+  /* -------------------------------- Mentes --------------------------------- */
+
+  function ment() {
+    if (!jatek) return;
+    var valasz = CIGI.save.ment(jatek.allapot);
+    if (!valasz.ok) ui.pirit(valasz.uzenet, 'rossz');
+  }
+
+  /* ---------------------------- Eredmeny-feldolgozas ------------------------ */
+
+  /**
+   * Egy akcio eredmenyenek megjelenitese, mentes, majd a kovetkezo lepes.
+   */
+  /** Piritosok egy akcio eredmenyebol: uzenet, achievementek, szintlepes. */
+  function visszajelzesek(eredmeny) {
+    ui.pirit(eredmeny.uzenet, eredmeny.tipus, eredmeny.valtozasok);
+
+    (eredmeny.ujAchievementek || []).forEach(function (ach) {
+      ui.pirit('🏆 ' + ach.nev + ' - ' + ach.leiras, 'jo');
+    });
+
+    if (eredmeny.szintlepes) {
+      ui.pirit('⭐ Szintlepes! ' + eredmeny.szintlepes.ujSzint + '. szint', 'jo');
+    }
+  }
+
+  function feldolgoz(eredmeny) {
+    if (!eredmeny) return;
+
+    if (!eredmeny.ok) {
+      ui.pirit(eredmeny.uzenet, 'rossz');
+      return;
+    }
+
+    visszajelzesek(eredmeny);
+    ui.render(jatek.allapot);
+    ment();
+    kovetkezoKezeles(eredmeny.kovetkezo);
+  }
+
+  /** A 'kovetkezo' leiro alapjan a megfelelo kepernyo megnyitasa. */
+  function kovetkezoKezeles(kovetkezo) {
+    if (!kovetkezo) return;
+
+    if (kovetkezo.tipus === 'story') { storyMutat(kovetkezo.fejezet); return; }
+    if (kovetkezo.tipus === 'esemeny') { esemenyMutat(kovetkezo.esemeny); return; }
+    if (kovetkezo.tipus === 'napVege') { napVegeMutat(kovetkezo); return; }
+    if (kovetkezo.tipus === 'vege') { vegeMutat(kovetkezo.befejezes); return; }
+  }
+
+  /* ------------------------------- Kepernyok -------------------------------- */
+
+  function storyMutat(fejezet) {
+    ui.modalNyit({
+      cim: fejezet.cim,
+      ikon: fejezet.ikon,
+      torzs: fejezet.szoveg,
+      bezarhato: false,
+      gombok: ui.valasztasGombok(fejezet.valasztasok, function (index) {
+        ui.modalZar();
+        feldolgoz(jatekModul.storyValasz(jatek, index));
+      })
+    });
+  }
+
+  function esemenyMutat(esemeny) {
+    ui.modalNyit({
+      cim: esemeny.ikon + ' ' + esemeny.cim,
+      torzs: esemeny.szoveg,
+      bezarhato: false,
+      gombok: ui.valasztasGombok(esemeny.valasztasok, function (index) {
+        ui.modalZar();
+        feldolgoz(jatekModul.esemenyValasz(jatek, index));
+      })
+    });
+  }
+
+  /** A nap lezarasa: eloszor az ok, utana az osszegzo. */
+  function napVegeMutat(leiras) {
+    ui.modalNyit({
+      cim: leiras.cim || 'A nap vege',
+      ikon: leiras.ok === false ? '💤' : '🌙',
+      torzs: leiras.szoveg || '',
+      bezarhato: false,
+      gombok: [{
+        szoveg: 'ELSZAMOLAS',
+        tipus: 'gomb-fo',
+        muvelet: function () {
+          ui.modalZar();
+          var zaras = jatekModul.napZaras(jatek);
+          visszajelzesek(zaras);
+          ui.render(jatek.allapot);
+          ment();
+
+          if (zaras.kovetkezo && zaras.kovetkezo.tipus === 'vege') {
+            vegeMutat(zaras.kovetkezo.befejezes);
+            return;
+          }
+          osszegzoMutat(zaras.osszegzo);
+        }
+      }]
+    });
+  }
+
+  function osszegzoMutat(osszegzo) {
+    ui.modalNyit({
+      cim: osszegzo.nap + '. NAP VEGE',
+      torzs: ui.napVegeTorzs(osszegzo),
+      bezarhato: false,
+      gombok: [{
+        szoveg: 'KOVETKEZO NAP →',
+        tipus: 'gomb-fo',
+        muvelet: function () {
+          ui.modalZar();
+          feldolgoz(jatekModul.ujNap(jatek));
+        }
+      }]
+    });
+  }
+
+  function vegeMutat(befejezes) {
+    ui.modalNyit({
+      cim: '🏁 ' + befejezes.cim,
+      torzs: ui.befejezesTorzs(jatek.allapot, befejezes),
+      bezarhato: false,
+      gombok: [
+        { szoveg: '🎬 UJ JATEK', tipus: 'gomb-fo', muvelet: function () { ui.modalZar(); ujJatekIndit(true); } },
+        { szoveg: '🏠 FOMENU', tipus: 'gomb-mellek', muvelet: function () { ui.modalZar(); fomenuMutat(); } }
+      ]
+    });
+    ui.render(jatek.allapot);
+    ment();
+  }
+
+  /* -------------------------------- Kezelok --------------------------------- */
+
+  var kezelok = {
+    mozgas: function (helyszinId) {
+      ui.modalZar();
+      feldolgoz(jatekModul.mozgas(jatek, helyszinId));
+    },
+
+    tevekenyseg: function (tipusId) {
+      feldolgoz(jatekModul.tevekenyseg(jatek, tipusId));
+    },
+
+    napZaras: function () {
+      napVegeMutat({ ok: true, cim: 'Lefekves', szoveg: 'Lezarod a napot es alszol egyet.' });
+    },
+
+    boltNyit: function () {
+      ui.modalNyit({
+        cim: '🏪 ' + CIGI.data.HELYSZINEK[jatek.allapot.helyszin].nev,
+        torzs: ui.boltTorzs(jatek.allapot),
+        gombok: [{ szoveg: 'BEZARAS', tipus: 'gomb-mellek', muvelet: ui.modalZar }]
+      });
+    },
+
+    vasarlas: function (targyId) {
+      var eredmeny = jatekModul.vasarlas(jatek, targyId);
+      feldolgoz(eredmeny);
+      if (eredmeny.ok) kezelok.boltNyit();   // frissitett arak/keszlet
+    },
+
+    munkaNyit: function () {
+      ui.modalNyit({
+        cim: '💼 Muszakok',
+        torzs: ui.munkaTorzs(jatek.allapot),
+        gombok: [{ szoveg: 'BEZARAS', tipus: 'gomb-mellek', muvelet: ui.modalZar }]
+      });
+    },
+
+    munkaIndit: function (munkaId) {
+      var indit = jatekModul.munkaIndit(jatek, munkaId);
+      if (!indit.ok) { ui.pirit(indit.uzenet, 'rossz'); return; }
+      ui.modalZar();
+      ui.munkaMiniJatek(indit.miniJatek.korok, function (talalatok) {
+        feldolgoz(jatekModul.munkaBefejez(jatek, talalatok));
+      });
+    },
+
+    targyHasznalat: function (targyId) {
+      var eredmeny = jatekModul.targyHasznalat(jatek, targyId);
+      feldolgoz(eredmeny);
+      if (eredmeny.ok) kezelok.inventoryNyit();
+    },
+
+    inventoryNyit: function () {
+      ui.modalNyit({
+        cim: '🎒 Taska',
+        torzs: ui.inventoryTorzs(jatek.allapot),
+        gombok: [{ szoveg: 'BEZARAS', tipus: 'gomb-mellek', muvelet: ui.modalZar }]
+      });
+    }
+  };
+
+  /* ------------------------------ Jatekinditas ------------------------------ */
+
+  function jatekterMutat() {
+    ui.e('fomenu').hidden = true;
+    ui.e('jatekter').hidden = false;
+    ui.render(jatek.allapot);
+  }
+
+  function fomenuMutat() {
+    ui.miniLeallit();
+    ui.modalZar();
+    ui.e('jatekter').hidden = true;
+    ui.e('fomenu').hidden = false;
+    ui.e('gomb-folytatas').hidden = !CIGI.save.vanMentes();
+  }
+
+  /** Uj jatek. Megleve mentes eseten megerosites keresunk. */
+  function ujJatekIndit(megerositesNelkul) {
+    if (!megerositesNelkul && CIGI.save.vanMentes()) {
+      ui.modalNyit({
+        cim: '⚠️ Van folyamatban levo jatek',
+        torzs: 'Az uj jatek felulirja a korabbi mentest. Biztosan ujrakezded?',
+        gombok: [
+          { szoveg: 'IGEN, UJRAKEZDEM', tipus: 'gomb-veszely', muvelet: function () { ui.modalZar(); ujJatekIndit(true); } },
+          { szoveg: 'MEGSE', tipus: 'gomb-mellek', muvelet: ui.modalZar }
+        ]
+      });
+      return;
+    }
+
+    jatek = jatekModul.createJatek(CIGI.state.ujAllapot());
+    CIGI.state.naploz(jatek.allapot, 'Elso nap. A doboz meg a zsebedben van.', 'info');
+    ment();
+    jatekterMutat();
+    kovetkezoKezeles(jatekModul.fejezetEllenorzes(jatek));
+  }
+
+  function folytatas() {
+    var betoltott = CIGI.save.betolt();
+    if (!betoltott) {
+      ui.pirit('Nincs betoltheto mentes.', 'rossz');
+      return;
+    }
+    jatek = jatekModul.createJatek(betoltott);
+    jatekterMutat();
+
+    if (betoltott.vege) { vegeMutat(betoltott.vege); return; }
+    kovetkezoKezeles(jatekModul.fejezetEllenorzes(jatek));
+  }
+
+  function sugoMutat() {
+    var torzs = ui.ujElem('div', 'lista');
+    [
+      ['🎯 A cel', 'Harminc napot kell vegigvinned. A fogadast akkor nyered meg, ha a vegere a fuggoseged 10% ala esik es az utolso het cigimentes.'],
+      ['🧠 Cigivagy', 'Az idovel folyamatosan no. Setaval, pihenessel, ragoval, vizzel, sporttal csokkentheto.'],
+      ['🫁 Tudo', 'Minden cigi levon belole. Ha elfogy, a jateknak vege.'],
+      ['⚡ Energia', 'Munka es mozgas viszi, alvas es kaja tolti. Ha elfogy, osszeesel.'],
+      ['💰 Penz', 'Muszakokkal keresed. A mini-jatek talalatai novelik a fizetesed.'],
+      ['⭐ Szintek', 'XP-t szinte minden dontessel kapsz. Magasabb szinten uj helyszinek, munkak es targyak nyilnak.'],
+      ['💾 Mentes', 'A jatek minden lepes utan automatikusan mentodik a bongeszodbe.']
+    ].forEach(function (par) {
+      var sor = ui.ujElem('div', 'tetel');
+      var szoveg = ui.ujElem('div', 'tetel-torzs');
+      szoveg.appendChild(ui.ujElem('div', 'tetel-nev', par[0]));
+      szoveg.appendChild(ui.ujElem('div', 'tetel-leiras', par[1]));
+      sor.appendChild(szoveg);
+      torzs.appendChild(sor);
+    });
+
+    ui.modalNyit({
+      cim: '❓ Hogyan mukodik',
+      torzs: torzs,
+      gombok: [{ szoveg: 'ERTEM', tipus: 'gomb-fo', muvelet: ui.modalZar }]
+    });
+  }
+
+  /* ---------------------------------- Init ---------------------------------- */
+
+  function init() {
+    ui.init(kezelok);
+
+    ui.e('gomb-uj-jatek').addEventListener('click', function () { ujJatekIndit(false); });
+    ui.e('gomb-folytatas').addEventListener('click', folytatas);
+    ui.e('gomb-menu-sugo').addEventListener('click', sugoMutat);
+
+    ui.e('gomb-menu-achievementek').addEventListener('click', function () {
+      var allapot = (jatek && jatek.allapot) || CIGI.save.betolt() || CIGI.state.ujAllapot();
+      ui.modalNyit({
+        cim: '🏆 Achievementek',
+        torzs: ui.achievementTorzs(allapot),
+        gombok: [{ szoveg: 'BEZARAS', tipus: 'gomb-mellek', muvelet: ui.modalZar }]
+      });
+    });
+
+    ui.e('gomb-cigi').addEventListener('click', function () {
+      var indit = jatekModul.cigiIndit(jatek);
+      if (!indit.ok) { ui.pirit(indit.uzenet, 'rossz'); return; }
+      ui.cigiMiniJatek(indit.miniJatek, function (pozicio) {
+        feldolgoz(jatekModul.cigiBefejez(jatek, pozicio));
+      });
+    });
+
+    ui.e('gomb-terkep').addEventListener('click', function () {
+      ui.modalNyit({
+        cim: '🗺️ Terkep',
+        torzs: ui.terkepTorzs(jatek.allapot),
+        gombok: [{ szoveg: 'BEZARAS', tipus: 'gomb-mellek', muvelet: ui.modalZar }]
+      });
+    });
+
+    ui.e('gomb-bolt').addEventListener('click', function () {
+      var helyszin = CIGI.data.HELYSZINEK[jatek.allapot.helyszin];
+      if (helyszin.akciok.indexOf('bolt') === -1) {
+        ui.pirit('Itt nincs bolt. Menj a boltba vagy a kavezoba.', 'rossz');
+        return;
+      }
+      kezelok.boltNyit();
+    });
+
+    ui.e('gomb-inventory').addEventListener('click', kezelok.inventoryNyit);
+
+    ui.e('gomb-achievementek').addEventListener('click', function () {
+      ui.modalNyit({
+        cim: '🏆 Achievementek',
+        torzs: ui.achievementTorzs(jatek.allapot),
+        gombok: [{ szoveg: 'BEZARAS', tipus: 'gomb-mellek', muvelet: ui.modalZar }]
+      });
+    });
+
+    ui.e('gomb-naplo').addEventListener('click', function () {
+      ui.modalNyit({
+        cim: '📜 Naplo',
+        torzs: ui.naploTorzs(jatek.allapot),
+        gombok: [
+          { szoveg: 'BEZARAS', tipus: 'gomb-mellek', muvelet: ui.modalZar },
+          { szoveg: '🏠 FOMENU', tipus: 'gomb-mellek', muvelet: function () { ui.modalZar(); fomenuMutat(); } }
+        ]
+      });
+    });
+
+    fomenuMutat();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+</body>
+</html>
